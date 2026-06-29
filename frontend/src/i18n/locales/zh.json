@@ -1,0 +1,70 @@
+{
+  "app": { "name": "SAJAMA 4x4", "subtitle": "库存管理系统" },
+  "nav": {
+    "inventario": "库存目录",
+    "ingresos": "入库记录",
+    "salidas": "出库记录",
+    "consultas": "查询",
+    "ordenSalida": "出库单",
+    "ordenEntrada": "入库单",
+    "lista": "主列表",
+    "reportes": "报告",
+    "usuarios": "用户管理",
+    "logout": "退出登录"
+  },
+  "common": {
+    "guardar": "保存", "cancelar": "取消", "eliminar": "删除",
+    "editar": "编辑", "nuevo": "新建", "buscar": "搜索",
+    "exportar": "导出Excel", "imprimir": "打印",
+    "cargando": "加载中...", "sinDatos": "无数据",
+    "confirmar": "确认", "aprobar": "批准", "rechazar": "拒绝",
+    "ver": "查看详情", "filtrar": "筛选", "limpiar": "清除",
+    "si": "是", "no": "否", "estado": "状态",
+    "fecha": "日期", "usuario": "用户", "cantidad": "数量",
+    "codigo": "编号", "descripcion": "描述", "acciones": "操作"
+  },
+  "auth": {
+    "login": "登录",
+    "email": "电子邮件",
+    "password": "密码",
+    "bienvenido": "欢迎回来"
+  },
+  "inventario": {
+    "titulo": "库存目录",
+    "stockActual": "当前库存",
+    "stockMin": "最低库存",
+    "precio": "价格 (Bs)",
+    "categoria": "类别",
+    "modelo": "型号",
+    "serie": "序列号",
+    "unidad": "单位",
+    "sinPrecio": "无价格",
+    "stockCero": "无库存",
+    "stockBajo": "库存不足",
+    "foto": "图片",
+    "ubicacion": "位置",
+    "descZh": "中文描述",
+    "salidas": "出库量"
+  },
+  "ingresos": {
+    "titulo": "入库记录",
+    "fuente": "来源",
+    "importacion": "进口",
+    "compra": "本地采购",
+    "devolucion": "退货",
+    "proveedor": "供应商 / 来源"
+  },
+  "salidas": {
+    "titulo": "出库记录",
+    "destino": "目的地",
+    "ventas": "销售",
+    "taller": "维修车间",
+    "transporte": "运输",
+    "bajas": "报废",
+    "solicitante": "申请人",
+    "autorizador": "批准人",
+    "pendiente": "待批",
+    "aprobado": "已批准",
+    "rechazado": "已拒绝"
+  }
+}

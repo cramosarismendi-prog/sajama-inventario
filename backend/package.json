@@ -1,0 +1,16 @@
+{
+  "name": "sajama-backend",
+  "version": "1.0.0",
+  "description": "Scripts de utilidad y migración SAJAMA 4x4",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "xlsx": "^0.18.5",
+    "dotenv": "^16.4.5"
+  },
+  "scripts": {
+    "migrate": "node src/migrate-excel.js",
+    "backup": "node src/backup.js"
+  }
+}

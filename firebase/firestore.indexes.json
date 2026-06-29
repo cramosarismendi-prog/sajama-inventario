@@ -1,0 +1,8 @@
+{
+  "indexes": [
+    { "collectionGroup": "salidas",   "queryScope": "COLLECTION", "fields": [{ "fieldPath": "estado",    "order": "ASCENDING" }, { "fieldPath": "creadoEn", "order": "DESCENDING" }] },
+    { "collectionGroup": "inventario","queryScope": "COLLECTION", "fields": [{ "fieldPath": "categoria", "order": "ASCENDING" }, { "fieldPath": "codigo",   "order": "ASCENDING"  }] },
+    { "collectionGroup": "ingresos",  "queryScope": "COLLECTION", "fields": [{ "fieldPath": "fuente",    "order": "ASCENDING" }, { "fieldPath": "creadoEn", "order": "DESCENDING" }] }
+  ],
+  "fieldOverrides": []
+}

@@ -1,0 +1,16 @@
+{
+  "name": "sajama-inventario",
+  "version": "1.0.0",
+  "description": "Sistema de Gestión de Inventario SAJAMA 4x4",
+  "private": true,
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "install:all": "npm install && cd frontend && npm install",
+    "build": "cd frontend && npm run build",
+    "emulators": "cd firebase && firebase emulators:start --project sajama-inventario",
+    "seed": "cd firebase && node seed.js"
+  },
+  "dependencies": {
+    "firebase": "^12.15.0"
+  }
+}
