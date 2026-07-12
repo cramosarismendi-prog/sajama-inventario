@@ -1,11 +1,9 @@
 import {
-  collection, doc, getDocs, setDoc, updateDoc, deleteDoc,
+  collection, doc, getDocs, setDoc, updateDoc,
   serverTimestamp, onSnapshot, query, orderBy
 } from 'firebase/firestore'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth, db } from './firebase'
-
-const COL = 'usuarios'
 
 export const ROLES = [
   { value: 'administrador',  label: 'Administrador' },
@@ -18,26 +16,35 @@ export const ROLES = [
 ]
 
 export const crearUsuario = async (email, password, datos) => {
+  // 1. Crear en Firebase Authentication
   const cred = await createUserWithEmailAndPassword(auth, email, password)
-  await setDoc(doc(db, COL, cred.user.uid), {
+  const uid  = cred.user.uid
+
+  // 2. Guardar en Firestore con setDoc (garantiza que se usa el UID correcto)
+  await setDoc(doc(db, 'usuarios', uid), {
     ...datos,
     email,
+    uid,
     creadoEn: serverTimestamp(),
-    activo: true
+    activo: true,
   })
-  return cred.user.uid
+
+  return uid
 }
 
 export const getUsuarios = async () => {
-  const snap = await getDocs(query(collection(db, COL), orderBy('nombre')))
+  const snap = await getDocs(query(collection(db, 'usuarios'), orderBy('nombre')))
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
 export const actualizarUsuario = async (uid, datos) => {
-  await updateDoc(doc(db, COL, uid), { ...datos, actualizadoEn: serverTimestamp() })
+  await updateDoc(doc(db, 'usuarios', uid), {
+    ...datos,
+    actualizadoEn: serverTimestamp()
+  })
 }
 
 export const suscribirUsuarios = (callback) => {
-  const q = query(collection(db, COL), orderBy('nombre'))
+  const q = query(collection(db, 'usuarios'), orderBy('nombre'))
   return onSnapshot(q, snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
 }
