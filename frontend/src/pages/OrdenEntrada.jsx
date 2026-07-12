@@ -108,7 +108,7 @@ td { border:1px solid #aaa; padding:2px 4px; height:15px; }
 @media print { body{padding:0} }
 </style></head><body>
 <div class="header">
-  <div class="logo">SAJAMA 4x4<br/>LOGO</div>
+  <div class="logo">Sajama.SRL<br/>LOGO</div>
   <div class="htxt">
     <div class="empresa">SAJAMA &nbsp; 萨哈马</div>
     <div class="dir">El Alto, avenida 6 de marzo (carretera a Oruro) cerca cruce Achocalla</div>

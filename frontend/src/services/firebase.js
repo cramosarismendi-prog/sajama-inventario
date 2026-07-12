@@ -4,12 +4,12 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
 import { getStorage, connectStorageEmulator } from 'firebase/storage'
 
 const firebaseConfig = {
-  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY             || 'demo-key',
-  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN         || 'sajama-inventario.firebaseapp.com',
-  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID          || 'sajama-inventario',
-  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET      || 'sajama-inventario.appspot.com',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '000000000000',
-  appId:             import.meta.env.VITE_FIREBASE_APP_ID              || '1:000000000000:web:demo'
+  apiKey:            import.meta.env.DEV ? 'demo-key' : import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN        || 'sajama-inventario-b5b17.firebaseapp.com',
+  projectId:         import.meta.env.DEV ? 'sajama-inventario'        : import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET     || 'sajama-inventario-b5b17.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '838813749958',
+  appId:             import.meta.env.VITE_FIREBASE_APP_ID             || '1:838813749958:web:7a1fb73f890912c86d44ef'
 }
 
 const app        = initializeApp(firebaseConfig)

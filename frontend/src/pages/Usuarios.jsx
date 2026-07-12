@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Shield, UserCheck, UserX, Eye, EyeOff } from 'lucide-react'
+import { Plus, Shield, UserCheck, UserX, Eye, EyeOff, Settings } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { suscribirUsuarios, crearUsuario, actualizarUsuario, ROLES } from '../services/usuarios'
 import { registrarAccion } from '../services/auditoria'
@@ -9,36 +9,97 @@ import { Badge } from '../components/ui/Badge'
 import { PageLoader } from '../components/ui/Spinner'
 import { EmptyState } from '../components/ui/EmptyState'
 import { useForm } from 'react-hook-form'
+import { MODULOS, ACCIONES, PERMISOS_ROL, getPermisosEfectivos } from '../services/permisos'
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { db } from '../services/firebase'
 
-const PERMISOS_POR_ROL = {
-  administrador:  ['inventario','ingresos','salidas','consultas','ordenSalida','ordenEntrada','lista','reportes','usuarios'],
-  gerencia:       ['inventario','salidas','consultas','reportes','usuarios'],
-  almacenero:     ['inventario','ingresos','salidas','consultas','ordenSalida','ordenEntrada','lista'],
-  ventas:         ['consultas','salidas','reportes'],
-  taller:         ['consultas','salidas'],
-  personalChino:  ['consultas','reportes'],
-  contabilidad:   ['consultas','reportes'],
+// ── Componente matriz de permisos ─────────────────────────────────────
+function MatrizPermisos({ permisos, onChange, soloLectura = false }) {
+  const ACCION_COLORS = {
+    ver:      'bg-blue-100 text-blue-700 border-blue-300',
+    crear:    'bg-green-100 text-green-700 border-green-300',
+    editar:   'bg-yellow-100 text-yellow-700 border-yellow-300',
+    eliminar: 'bg-red-100 text-red-700 border-red-300',
+  }
+  const ACCION_COLORS_ON = {
+    ver:      'bg-blue-500 text-white border-blue-500',
+    crear:    'bg-green-500 text-white border-green-500',
+    editar:   'bg-yellow-500 text-white border-yellow-500',
+    eliminar: 'bg-red-500 text-white border-red-500',
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="bg-gray-50">
+            <th className="th text-left w-36">Módulo</th>
+            {ACCIONES.map(a => (
+              <th key={a.key} className="th text-center w-20">{a.label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {MODULOS.map(modulo => (
+            <tr key={modulo.key} className="border-b border-gray-50 hover:bg-gray-50">
+              <td className="td font-medium text-gray-700 py-2">{modulo.label}</td>
+              {ACCIONES.map(accion => {
+                const activo = permisos[modulo.key]?.[accion.key] ?? false
+                return (
+                  <td key={accion.key} className="td text-center py-2">
+                    <button
+                      type="button"
+                      disabled={soloLectura}
+                      onClick={() => !soloLectura && onChange(modulo.key, accion.key, !activo)}
+                      className={"w-8 h-8 rounded-lg border-2 font-bold transition-all mx-auto flex items-center justify-center " +
+                        (activo
+                          ? ACCION_COLORS_ON[accion.key]
+                          : "bg-gray-50 text-gray-300 border-gray-200 " + (soloLectura ? '' : 'hover:border-gray-400')
+                        )
+                      }
+                      title={activo ? 'Permitido' : 'Denegado'}
+                    >
+                      {activo ? '✓' : '×'}
+                    </button>
+                  </td>
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
 }
 
-const MODULOS_LABELS = {
-  inventario:   'Inventario',
-  ingresos:     'Ingresos',
-  salidas:      'Salidas',
-  consultas:    'Consultas',
-  ordenSalida:  'Orden de Salida',
-  ordenEntrada: 'Orden de Entrada',
-  lista:        'Lista Maestra',
-  reportes:     'Reportes',
-  usuarios:     'Usuarios',
-}
-
+// ── Formulario crear usuario ──────────────────────────────────────────
 function FormUsuario({ onGuardar, onCancelar }) {
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm()
   const [showPass, setShow] = useState(false)
+  const [permisosPersonalizados, setPermisosPersonalizados] = useState(null)
+  const [mostrarMatriz, setMostrarMatriz] = useState(false)
   const rolSel = watch('rol')
 
+  // Cuando cambia el rol, resetear permisos personalizados
+  useEffect(() => {
+    if (rolSel && PERMISOS_ROL[rolSel]) {
+      setPermisosPersonalizados(JSON.parse(JSON.stringify(PERMISOS_ROL[rolSel])))
+    }
+  }, [rolSel])
+
+  const handlePermiso = (modulo, accion, valor) => {
+    setPermisosPersonalizados(prev => ({
+      ...prev,
+      [modulo]: { ...(prev[modulo] || {}), [accion]: valor }
+    }))
+  }
+
+  const onSubmit = async (data) => {
+    await onGuardar({ ...data, permisosPersonalizados })
+  }
+
   return (
-    <form onSubmit={handleSubmit(onGuardar)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="label">Nombre completo *</label>
@@ -46,7 +107,7 @@ function FormUsuario({ onGuardar, onCancelar }) {
           {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre.message}</p>}
         </div>
         <div>
-          <label className="label">Rol *</label>
+          <label className="label">Rol base *</label>
           <select className="input" {...register('rol', { required: 'Requerido' })}>
             <option value="">Seleccionar...</option>
             {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
@@ -57,7 +118,8 @@ function FormUsuario({ onGuardar, onCancelar }) {
 
       <div>
         <label className="label">Correo electrónico *</label>
-        <input className="input" type="email" {...register('email', { required: 'Requerido' })} placeholder="usuario@sajama.com" />
+        <input className="input" type="email" placeholder="usuario@sajama.com"
+          {...register('email', { required: 'Requerido' })} />
         {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
       </div>
 
@@ -65,57 +127,140 @@ function FormUsuario({ onGuardar, onCancelar }) {
         <label className="label">Contraseña inicial *</label>
         <div className="relative">
           <input className="input pr-10" type={showPass ? 'text' : 'password'}
-            {...register('password', { required: 'Requerido', minLength: { value: 6, message: 'Mín. 6 caracteres' } })}
-            placeholder="Mín. 6 caracteres" />
+            placeholder="Mín. 6 caracteres"
+            {...register('password', { required: 'Requerido', minLength: { value: 6, message: 'Mín. 6 caracteres' } })} />
           <button type="button" onClick={() => setShow(p => !p)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
             {showPass ? <EyeOff size={15}/> : <Eye size={15}/>}
           </button>
         </div>
         {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
       </div>
 
-      {/* Preview permisos del rol */}
-      {rolSel && PERMISOS_POR_ROL[rolSel] && (
-        <div className="bg-primary-pale rounded-lg p-3">
-          <p className="text-xs font-semibold text-primary mb-2">
-            Módulos que tendrá acceso con el rol <b>{rolSel}</b>:
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {PERMISOS_POR_ROL[rolSel].map(m => (
-              <span key={m} className="bg-primary text-white text-xs px-2 py-0.5 rounded-full">
-                {MODULOS_LABELS[m]}
+      {/* Permisos personalizados */}
+      {rolSel && permisosPersonalizados && (
+        <div className="border border-gray-200 rounded-xl overflow-hidden">
+          <button type="button"
+            onClick={() => setMostrarMatriz(p => !p)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors">
+            <div className="flex items-center gap-2">
+              <Settings size={15} className="text-primary"/>
+              <span className="text-sm font-medium text-gray-700">
+                Personalizar permisos (opcional)
               </span>
-            ))}
-          </div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {Object.keys(MODULOS_LABELS).filter(m => !PERMISOS_POR_ROL[rolSel].includes(m)).map(m => (
-              <span key={m} className="bg-gray-200 text-gray-500 text-xs px-2 py-0.5 rounded-full line-through">
-                {MODULOS_LABELS[m]}
-              </span>
-            ))}
-          </div>
+            </div>
+            <span className="text-xs text-gray-400">{mostrarMatriz ? 'Ocultar ▲' : 'Mostrar ▼'}</span>
+          </button>
+          {mostrarMatriz && (
+            <div className="p-4">
+              <p className="text-xs text-gray-500 mb-3">
+                Los permisos marcados en azul/verde/amarillo/rojo indican acceso. Modifica según necesites.
+              </p>
+              <MatrizPermisos
+                permisos={permisosPersonalizados}
+                onChange={handlePermiso}
+              />
+            </div>
+          )}
         </div>
       )}
 
       <div className="flex gap-3 justify-end pt-2 border-t border-gray-100">
         <button type="button" onClick={onCancelar} className="btn-secondary">Cancelar</button>
         <button type="submit" disabled={isSubmitting} className="btn-primary">
-          {isSubmitting ? 'Creando usuario...' : 'Crear usuario'}
+          {isSubmitting ? 'Creando...' : 'Crear usuario'}
         </button>
       </div>
     </form>
   )
 }
 
+// ── Modal editar permisos de usuario existente ────────────────────────
+function EditarPermisos({ usuario, onCerrar }) {
+  const { perfil: miPerfil } = useAuth()
+  const [permisos, setPermisos] = useState(
+    usuario.permisosPersonalizados || JSON.parse(JSON.stringify(PERMISOS_ROL[usuario.rol] || {}))
+  )
+  const [guardando, setGuardando] = useState(false)
+
+  const handlePermiso = (modulo, accion, valor) => {
+    setPermisos(prev => ({
+      ...prev,
+      [modulo]: { ...(prev[modulo] || {}), [accion]: valor }
+    }))
+  }
+
+  const resetearArol = () => {
+    setPermisos(JSON.parse(JSON.stringify(PERMISOS_ROL[usuario.rol] || {})))
+    toast.success('Permisos reseteados al rol base')
+  }
+
+  const guardar = async () => {
+    setGuardando(true)
+    try {
+      await updateDoc(doc(db, 'usuarios', usuario.id), {
+        permisosPersonalizados: permisos,
+        actualizadoEn: serverTimestamp(),
+        actualizadoPor: miPerfil?.nombre,
+      })
+      await registrarAccion({
+        usuario: miPerfil?.nombre, rol: miPerfil?.rol,
+        modulo: 'Usuarios', accion: 'EDITAR',
+        detalle: 'Actualizó permisos de ' + usuario.nombre,
+      })
+      toast.success('Permisos actualizados correctamente')
+      onCerrar()
+    } catch(e) {
+      toast.error('Error: ' + e.message)
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-primary-pale rounded-full flex items-center justify-center text-primary font-bold">
+            {usuario.nombre?.[0]?.toUpperCase()}
+          </div>
+          <div>
+            <p className="font-semibold">{usuario.nombre}</p>
+            <p className="text-xs text-gray-500">Rol base: <b className="capitalize">{usuario.rol}</b></p>
+          </div>
+        </div>
+        <button onClick={resetearArol} className="btn-secondary btn-sm">
+          Resetear al rol base
+        </button>
+      </div>
+
+      <div className="bg-blue-50 rounded-lg p-3 text-xs text-blue-700">
+        <b>Ver</b> = puede acceder al módulo &nbsp;·&nbsp;
+        <b>Crear</b> = puede agregar registros &nbsp;·&nbsp;
+        <b>Editar</b> = puede modificar &nbsp;·&nbsp;
+        <b>Eliminar</b> = puede borrar
+      </div>
+
+      <MatrizPermisos permisos={permisos} onChange={handlePermiso} />
+
+      <div className="flex gap-3 justify-end pt-2 border-t border-gray-100">
+        <button onClick={onCerrar} className="btn-secondary">Cancelar</button>
+        <button onClick={guardar} disabled={guardando} className="btn-primary">
+          {guardando ? 'Guardando...' : 'Guardar permisos'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Página principal ──────────────────────────────────────────────────
 export default function Usuarios() {
   const { perfil } = useAuth()
-  const [usuarios, setUsuarios] = useState([])
-  const [loading,  setLoading]  = useState(true)
-  const [modal,    setModal]    = useState(false)
-  const [verRol,   setVerRol]   = useState(null)
+  const [usuarios,      setUsuarios]      = useState([])
+  const [loading,       setLoading]       = useState(true)
+  const [modalCrear,    setModalCrear]    = useState(false)
+  const [modalPermisos, setModalPermisos] = useState(null)
 
-  // Solo admin y gerencia pueden ver este módulo
   const soloLectura = perfil?.rol === 'gerencia'
 
   useEffect(() => {
@@ -123,17 +268,17 @@ export default function Usuarios() {
     return unsub
   }, [])
 
-  const handleCrear = async ({ email, password, nombre, rol }) => {
+  const handleCrear = async ({ email, password, nombre, rol, permisosPersonalizados }) => {
     try {
-      await crearUsuario(email, password, { nombre, rol })
+      await crearUsuario(email, password, { nombre, rol, permisosPersonalizados })
       await registrarAccion({
         usuario: perfil.nombre, rol: perfil.rol,
         modulo: 'Usuarios', accion: 'CREAR',
-        detalle: `Creó usuario ${nombre} con rol ${rol} (${email})`
+        detalle: 'Creó usuario ' + nombre + ' con rol ' + rol + ' (' + email + ')',
       })
-      toast.success(`Usuario ${nombre} creado correctamente`)
-      setModal(false)
-    } catch (e) { toast.error('Error: ' + e.message) }
+      toast.success('Usuario ' + nombre + ' creado correctamente')
+      setModalCrear(false)
+    } catch(e) { toast.error('Error: ' + e.message) }
   }
 
   const toggleActivo = async (u) => {
@@ -143,13 +288,21 @@ export default function Usuarios() {
       await registrarAccion({
         usuario: perfil.nombre, rol: perfil.rol,
         modulo: 'Usuarios', accion: 'EDITAR',
-        detalle: `${u.activo ? 'Desactivó' : 'Activó'} el usuario ${u.nombre} (${u.email})`
+        detalle: (u.activo ? 'Desactivó' : 'Activó') + ' el usuario ' + u.nombre,
       })
-      toast.success(`Usuario ${u.activo ? 'desactivado' : 'activado'}`)
-    } catch (e) { toast.error('Error al actualizar') }
+      toast.success('Usuario ' + (u.activo ? 'desactivado' : 'activado'))
+    } catch(e) { toast.error('Error') }
   }
 
   const rolLabel = (r) => ROLES.find(x => x.value === r)?.label || r
+
+  // Resumen de permisos activos
+  const resumenPermisos = (u) => {
+    const p = getPermisosEfectivos(u)
+    const modulosConAcceso = MODULOS.filter(m => p[m.key]?.ver).length
+    const tienePersonalizados = !!u.permisosPersonalizados
+    return { modulosConAcceso, tienePersonalizados }
+  }
 
   if (loading) return <PageLoader />
 
@@ -159,108 +312,94 @@ export default function Usuarios() {
         <div>
           <h1>Gestión de Usuarios</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {usuarios.length} usuarios registrados
-            {soloLectura && <span className="ml-2 text-yellow-600 font-medium">— Solo lectura</span>}
+            {usuarios.length} usuarios · Permisos por rol y personalizados
           </p>
         </div>
         {!soloLectura && (
-          <button onClick={() => setModal(true)} className="btn-primary btn-sm">
+          <button onClick={() => setModalCrear(true)} className="btn-primary btn-sm">
             <Plus size={14}/> Nuevo usuario
           </button>
         )}
       </div>
 
-      {/* Tabla de usuarios */}
       <div className="card p-0 overflow-hidden">
-        {usuarios.length === 0 ? <EmptyState mensaje="No hay usuarios registrados" /> : (
+        {usuarios.length === 0 ? <EmptyState mensaje="No hay usuarios registrados"/> : (
           <table className="table-auto w-full">
             <thead><tr>
-              {['Usuario','Rol','Módulos con acceso','Correo','Estado','Acciones'].map(h => (
+              {['Usuario','Rol','Módulos con acceso','Permisos','Estado','Acciones'].map(h => (
                 <th key={h} className="th">{h}</th>
               ))}
             </tr></thead>
             <tbody>
-              {usuarios.map(u => (
-                <tr key={u.id} className="tr-hover">
-                  <td className="td">
-                    <div className="flex items-center gap-2">
-                      <div className="w-9 h-9 bg-primary-pale rounded-full flex items-center justify-center text-primary text-sm font-bold shrink-0">
-                        {u.nombre?.[0]?.toUpperCase() || '?'}
+              {usuarios.map(u => {
+                const { modulosConAcceso, tienePersonalizados } = resumenPermisos(u)
+                return (
+                  <tr key={u.id} className="tr-hover">
+                    <td className="td">
+                      <div className="flex items-center gap-2">
+                        <div className="w-9 h-9 bg-primary-pale rounded-full flex items-center justify-center text-primary text-sm font-bold shrink-0">
+                          {u.nombre?.[0]?.toUpperCase() || '?'}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{u.nombre}</p>
+                          <p className="text-xs text-gray-400">{u.email}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-sm">{u.nombre}</p>
-                        <p className="text-xs text-gray-400">{u.email}</p>
+                    </td>
+                    <td className="td">
+                      <div className="flex items-center gap-1.5">
+                        <Shield size={13} className="text-primary-light shrink-0"/>
+                        <span className="text-sm font-medium">{rolLabel(u.rol)}</span>
                       </div>
-                    </div>
-                  </td>
-                  <td className="td">
-                    <div className="flex items-center gap-1.5">
-                      <Shield size={13} className="text-primary-light shrink-0"/>
-                      <span className="text-sm font-medium">{rolLabel(u.rol)}</span>
-                    </div>
-                  </td>
-                  <td className="td">
-                    <div className="flex flex-wrap gap-1">
-                      {(PERMISOS_POR_ROL[u.rol] || []).slice(0,4).map(m => (
-                        <span key={m} className="bg-primary-pale text-primary text-xs px-1.5 py-0.5 rounded">
-                          {MODULOS_LABELS[m]}
-                        </span>
-                      ))}
-                      {(PERMISOS_POR_ROL[u.rol] || []).length > 4 && (
-                        <button onClick={() => setVerRol(u)}
-                          className="text-xs text-primary-light hover:underline">
-                          +{(PERMISOS_POR_ROL[u.rol] || []).length - 4} más
+                    </td>
+                    <td className="td">
+                      <span className="text-sm font-bold text-primary">{modulosConAcceso}</span>
+                      <span className="text-xs text-gray-400"> de {MODULOS.length} módulos</span>
+                    </td>
+                    <td className="td">
+                      {tienePersonalizados
+                        ? <Badge tipo="yellow">Personalizados</Badge>
+                        : <Badge tipo="blue">Rol base</Badge>
+                      }
+                    </td>
+                    <td className="td">
+                      <Badge tipo={u.activo ? 'green' : 'red'}>
+                        {u.activo ? 'Activo' : 'Inactivo'}
+                      </Badge>
+                    </td>
+                    <td className="td">
+                      <div className="flex gap-1.5">
+                        {!soloLectura && (
+                          <button onClick={() => setModalPermisos(u)}
+                            className="p-1.5 rounded-lg hover:bg-primary-pale text-primary transition-colors"
+                            title="Editar permisos">
+                            <Settings size={14}/>
+                          </button>
+                        )}
+                        <button onClick={() => toggleActivo(u)}
+                          className={"btn-sm " + (u.activo ? 'btn-secondary' : 'btn-success')}>
+                          {u.activo ? <><UserX size={13}/> Desactivar</> : <><UserCheck size={13}/> Activar</>}
                         </button>
-                      )}
-                    </div>
-                  </td>
-                  <td className="td text-sm text-gray-500">{u.email}</td>
-                  <td className="td">
-                    <Badge tipo={u.activo ? 'green' : 'red'}>
-                      {u.activo ? 'Activo' : 'Inactivo'}
-                    </Badge>
-                  </td>
-                  <td className="td">
-                    {!soloLectura && (
-                      <button onClick={() => toggleActivo(u)}
-                        className={`btn-sm flex items-center gap-1 ${u.activo ? 'btn-secondary' : 'btn-success'}`}>
-                        {u.activo ? <><UserX size={13}/> Desactivar</> : <><UserCheck size={13}/> Activar</>}
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         )}
       </div>
 
-      {/* Modal detalle permisos del rol */}
-      <Modal open={!!verRol} onClose={() => setVerRol(null)}
-        title={`Permisos de ${verRol?.nombre} — ${rolLabel(verRol?.rol)}`} size="sm">
-        <div className="space-y-3">
-          <p className="text-sm text-gray-500">Módulos con acceso:</p>
-          <div className="space-y-2">
-            {Object.entries(MODULOS_LABELS).map(([key, label]) => {
-              const tiene = (PERMISOS_POR_ROL[verRol?.rol] || []).includes(key)
-              return (
-                <div key={key} className={`flex items-center gap-3 p-2 rounded-lg ${tiene ? 'bg-green-50' : 'bg-gray-50'}`}>
-                  <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${tiene ? 'bg-success' : 'bg-gray-300'}`}>
-                    {tiene && <span className="text-white text-xs">✓</span>}
-                  </div>
-                  <span className={`text-sm ${tiene ? 'text-green-800 font-medium' : 'text-gray-400 line-through'}`}>
-                    {label}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+      <Modal open={modalCrear} onClose={() => setModalCrear(false)}
+        title="Crear nuevo usuario" size="lg">
+        <FormUsuario onGuardar={handleCrear} onCancelar={() => setModalCrear(false)}/>
       </Modal>
 
-      {/* Modal crear usuario */}
-      <Modal open={modal} onClose={() => setModal(false)} title="Crear nuevo usuario" size="md">
-        <FormUsuario onGuardar={handleCrear} onCancelar={() => setModal(false)} />
+      <Modal open={!!modalPermisos} onClose={() => setModalPermisos(null)}
+        title={"Permisos de " + (modalPermisos?.nombre || '')} size="lg">
+        {modalPermisos && (
+          <EditarPermisos usuario={modalPermisos} onCerrar={() => setModalPermisos(null)}/>
+        )}
       </Modal>
     </div>
   )

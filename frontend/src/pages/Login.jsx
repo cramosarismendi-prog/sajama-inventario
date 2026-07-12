@@ -9,9 +9,9 @@ export default function Login() {
   const { t } = useTranslation()
   const { login } = useAuth()
   const navigate   = useNavigate()
-  const [form, setForm]     = useState({ email: '', password: '' })
-  const [showPass, setShow] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [form, setForm]       = useState({ email: '', password: '' })
+  const [showPass, setShow]   = useState(false)
+  const [loading,  setLoading] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -29,18 +29,14 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary to-primary-light flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Card */}
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-          {/* Header */}
           <div className="bg-primary px-8 py-8 text-center">
             <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Package size={32} className="text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-white">SAJAMA 4x4</h1>
+            <h1 className="text-2xl font-bold text-white">Sajama.SRL</h1>
             <p className="text-white/70 text-sm mt-1">{t('app.subtitle')}</p>
           </div>
-
-          {/* Form */}
           <form onSubmit={handleSubmit} className="px-8 py-8 space-y-5">
             <div>
               <label className="label">{t('auth.email')}</label>

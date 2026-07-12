@@ -1,70 +1,41 @@
 {
-  "app": { "name": "SAJAMA 4x4", "subtitle": "Sistema de Inventario" },
+  "app": { "name": "Sajama.SRL", "subtitle": "Sistema de Inventario" },
   "nav": {
-    "inventario": "Inventario",
-    "ingresos": "Ingresos",
-    "salidas": "Salidas",
-    "consultas": "Consultas",
-    "ordenSalida": "Orden de Salida",
-    "ordenEntrada": "Orden de Entrada",
-    "lista": "Lista Maestra",
-    "reportes": "Reportes",
-    "usuarios": "Usuarios",
-    "logout": "Cerrar sesión"
+    "inventario": "Inventario", "ingresos": "Ingresos", "salidas": "Salidas",
+    "consultas": "Consultas", "ordenSalida": "Orden de Salida",
+    "ordenEntrada": "Orden de Entrada", "lista": "Lista Maestra",
+    "reportes": "Reportes", "usuarios": "Usuarios", "logout": "Cerrar sesión"
   },
   "common": {
     "guardar": "Guardar", "cancelar": "Cancelar", "eliminar": "Eliminar",
     "editar": "Editar", "nuevo": "Nuevo", "buscar": "Buscar",
-    "exportar": "Exportar Excel", "imprimir": "Imprimir",
-    "cargando": "Cargando...", "sinDatos": "Sin datos",
-    "confirmar": "Confirmar", "aprobar": "Aprobar", "rechazar": "Rechazar",
-    "ver": "Ver detalle", "filtrar": "Filtrar", "limpiar": "Limpiar",
-    "si": "Sí", "no": "No", "estado": "Estado",
+    "exportar": "Exportar Excel", "imprimir": "Imprimir", "cargando": "Cargando...",
+    "sinDatos": "Sin datos", "confirmar": "Confirmar", "aprobar": "Aprobar",
+    "rechazar": "Rechazar", "ver": "Ver detalle", "filtrar": "Filtrar",
+    "limpiar": "Limpiar", "si": "Sí", "no": "No", "estado": "Estado",
     "fecha": "Fecha", "usuario": "Usuario", "cantidad": "Cantidad",
     "codigo": "Código", "descripcion": "Descripción", "acciones": "Acciones"
   },
   "auth": {
-    "login": "Iniciar sesión",
-    "email": "Correo electrónico",
-    "password": "Contraseña",
-    "bienvenido": "Bienvenido de vuelta"
+    "login": "Iniciar sesión", "email": "Correo electrónico",
+    "password": "Contraseña", "bienvenido": "Bienvenido de vuelta"
   },
   "inventario": {
-    "titulo": "Catálogo de Inventario",
-    "stockActual": "Stock actual",
-    "stockMin": "Stock mínimo",
-    "precio": "Precio (Bs)",
-    "categoria": "Categoría",
-    "modelo": "Modelo",
-    "serie": "N° de serie",
-    "unidad": "Unidad",
-    "sinPrecio": "Sin precio",
-    "stockCero": "Sin stock",
-    "stockBajo": "Stock bajo",
-    "foto": "Foto",
-    "ubicacion": "Ubicación",
-    "descZh": "Desc. Chino",
-    "salidas": "Salidas"
+    "titulo": "Catálogo de Inventario", "stockActual": "Stock actual",
+    "stockMin": "Stock mínimo", "precio": "Precio (Bs)", "categoria": "Categoría",
+    "modelo": "Modelo", "serie": "N° de serie", "unidad": "Unidad",
+    "sinPrecio": "Sin precio", "stockCero": "Sin stock", "stockBajo": "Stock bajo",
+    "foto": "Foto", "ubicacion": "Ubicación", "descZh": "Desc. Chino", "salidas": "Salidas"
   },
   "ingresos": {
-    "titulo": "Registro de Ingresos",
-    "fuente": "Fuente de ingreso",
-    "importacion": "Importación",
-    "compra": "Compra local",
-    "devolucion": "Devolución",
-    "proveedor": "Proveedor / Origen"
+    "titulo": "Registro de Ingresos", "fuente": "Fuente de ingreso",
+    "importacion": "Importación", "compra": "Compra local",
+    "devolucion": "Devolución", "proveedor": "Proveedor / Origen"
   },
   "salidas": {
-    "titulo": "Registro de Salidas",
-    "destino": "Destino",
-    "ventas": "Ventas",
-    "taller": "Taller Mecánico",
-    "transporte": "Transporte",
-    "bajas": "Bajas",
-    "solicitante": "Solicitante",
-    "autorizador": "Autorizador",
-    "pendiente": "Pendiente",
-    "aprobado": "Aprobado",
-    "rechazado": "Rechazado"
+    "titulo": "Registro de Salidas", "destino": "Destino", "ventas": "Ventas",
+    "taller": "Taller Mecánico", "transporte": "Transporte", "bajas": "Bajas",
+    "solicitante": "Solicitante", "autorizador": "Autorizador",
+    "pendiente": "Pendiente", "aprobado": "Aprobado", "rechazado": "Rechazado"
   }
 }

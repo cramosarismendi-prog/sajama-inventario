@@ -2,30 +2,33 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from '../services/firebase'
+import { getPermisosEfectivos, puedeDo } from '../services/permisos'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user,    setUser]    = useState(null)
   const [perfil,  setPerfil]  = useState(null)
+  const [permisos,setPermisos]= useState({})
   const [loading, setLoading] = useState(true)
 
   const cargarPerfil = async (uid) => {
-    // Retry hasta 5 veces con espera progresiva
     for (let i = 0; i < 5; i++) {
       try {
         const snap = await getDoc(doc(db, 'usuarios', uid))
         if (snap.exists()) {
-          setPerfil(snap.data())
-          return snap.data()
+          const data = snap.data()
+          setPerfil(data)
+          setPermisos(getPermisosEfectivos(data))
+          return data
         }
       } catch (e) {
-        console.warn(`Intento ${i + 1} fallido al cargar perfil:`, e.message)
+        console.warn(`Intento ${i + 1} fallido:`, e.message)
       }
       await new Promise(r => setTimeout(r, 500 * (i + 1)))
     }
-    console.error('No se pudo cargar el perfil del usuario')
     setPerfil(null)
+    setPermisos({})
     return null
   }
 
@@ -37,6 +40,7 @@ export function AuthProvider({ children }) {
       } else {
         setUser(null)
         setPerfil(null)
+        setPermisos({})
       }
       setLoading(false)
     })
@@ -51,25 +55,24 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setPerfil(null)
+    setPermisos({})
     return signOut(auth)
   }
 
+  // Verifica acceso a un módulo (ver = puede entrar al módulo)
   const tienePermiso = (modulo) => {
     if (!perfil) return false
-    if (perfil.rol === 'administrador') return true
-    const permisos = {
-      gerencia:      ['inventario','salidas','consultas','reportes'],
-      almacenero:    ['inventario','ingresos','salidas','consultas','ordenSalida','ordenEntrada','lista'],
-      ventas:        ['consultas','salidas','reportes'],
-      taller:        ['consultas','salidas'],
-      personalChino: ['consultas','reportes'],
-      contabilidad:  ['consultas','reportes'],
-    }
-    return (permisos[perfil.rol] || []).includes(modulo)
+    return permisos[modulo]?.ver ?? false
+  }
+
+  // Verifica si puede hacer una acción específica
+  const puede = (modulo, accion = 'ver') => {
+    if (!perfil) return false
+    return permisos[modulo]?.[accion] ?? false
   }
 
   return (
-    <AuthContext.Provider value={{ user, perfil, loading, login, logout, tienePermiso }}>
+    <AuthContext.Provider value={{ user, perfil, permisos, loading, login, logout, tienePermiso, puede }}>
       {children}
     </AuthContext.Provider>
   )

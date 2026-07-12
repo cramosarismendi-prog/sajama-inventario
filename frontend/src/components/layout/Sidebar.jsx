@@ -1,47 +1,58 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import {
-  Package, ArrowDownCircle, ArrowUpCircle, Search,
-  FileText, FilePlus, List, BarChart2, Users, LogOut,
-  Globe, ChevronLeft, ChevronRight, ShieldAlert, FileSpreadsheet, ScanLine, ShoppingCart
+  Package, Search, FileText, FilePlus, List,
+  BarChart2, Users, LogOut, Globe, ChevronLeft,
+  ChevronRight, ShieldAlert, FileSpreadsheet, ShoppingCart
 } from 'lucide-react'
 import i18n from '../../i18n'
 
 const MENU = [
-  { key: 'inventario',   path: '/inventario',    icon: Package,           modulo: 'inventario'  },
-  { key: 'scanner',      path: '/scanner',        icon: ScanLine,          modulo: 'ingresos'    },
-  { key: 'compras',      path: '/compras',        icon: ShoppingCart,      modulo: 'ingresos'    },
-  { key: 'importar',     path: '/importar',       icon: FileSpreadsheet,   modulo: 'ingresos'    },
-  { key: 'ingresos',     path: '/ingresos',       icon: ArrowDownCircle,   modulo: 'ingresos'    },
-  { key: 'salidas',      path: '/salidas',        icon: ArrowUpCircle,     modulo: 'salidas'     },
-  { key: 'consultas',    path: '/consultas',      icon: Search,            modulo: 'consultas'   },
-  { key: 'ordenSalida',  path: '/orden-salida',   icon: FileText,          modulo: 'ordenSalida' },
-  { key: 'ordenEntrada', path: '/orden-entrada',  icon: FilePlus,          modulo: 'ordenEntrada'},
-  { key: 'lista',        path: '/lista',          icon: List,              modulo: 'lista'       },
-  { key: 'reportes',     path: '/reportes',       icon: BarChart2,         modulo: 'reportes'    },
-  { key: 'usuarios',     path: '/usuarios',       icon: Users,             modulo: 'usuarios'    },
-  { key: 'auditoria',    path: '/auditoria',      icon: ShieldAlert,       modulo: 'usuarios'    },
+  { key: 'inventario',   path: '/inventario',    icon: Package,         modulo: 'inventario'   },
+  { key: 'compras',      path: '/compras',        icon: ShoppingCart,    modulo: 'ingresos'     },
+  { key: 'importar',     path: '/importar',       icon: FileSpreadsheet, modulo: 'ingresos'     },
+  { key: 'consultas',    path: '/consultas',      icon: Search,          modulo: 'consultas'    },
+  { key: 'ordenSalida',  path: '/orden-salida',   icon: FileText,        modulo: 'ordenSalida'  },
+  { key: 'ordenEntrada', path: '/orden-entrada',  icon: FilePlus,        modulo: 'ordenEntrada' },
+  { key: 'lista',        path: '/lista',          icon: List,            modulo: 'lista'        },
+  { key: 'reportes',     path: '/reportes',       icon: BarChart2,       modulo: 'reportes'     },
+  { key: 'usuarios',     path: '/usuarios',       icon: Users,           modulo: 'usuarios'     },
+  { key: 'auditoria',    path: '/auditoria',      icon: ShieldAlert,     modulo: 'usuarios'     },
 ]
 
 const LABELS = {
   es: {
-    inventario:'Inventario', scanner:'Scanner QR', compras:'Compras', importar:'Importar Excel', ingresos:'Ingresos',
-    salidas:'Salidas', consultas:'Consultas', ordenSalida:'Orden de Salida',
-    ordenEntrada:'Orden de Entrada', lista:'Lista Maestra', reportes:'Reportes',
-    usuarios:'Usuarios', auditoria:'Auditoría',
+    inventario:   'Inventario',
+    compras:      'Compras',
+    importar:     'Importar Excel',
+    consultas:    'Consultas',
+    ordenSalida:  'Orden de Salida',
+    ordenEntrada: 'Orden de Entrada',
+    lista:        'Lista Maestra',
+    reportes:     'Reportes',
+    usuarios:     'Usuarios',
+    auditoria:    'Auditoría',
   },
   zh: {
-    inventario:'库存目录', scanner:'扫码器', compras:'采购管理', importar:'导入Excel', ingresos:'入库记录',
-    salidas:'出库记录', consultas:'查询', ordenSalida:'出库单',
-    ordenEntrada:'入库单', lista:'主列表', reportes:'报告',
-    usuarios:'用户管理', auditoria:'审计日志',
+    inventario:   '库存目录',
+    compras:      '采购管理',
+    importar:     '导入Excel',
+    consultas:    '查询',
+    ordenSalida:  '出库单',
+    ordenEntrada: '入库单',
+    lista:        '主列表',
+    reportes:     '报告',
+    usuarios:     '用户管理',
+    auditoria:    '审计日志',
   }
 }
 
 const ROL_ZH = {
-  administrador:'管理员', gerencia:'管理层', almacenero:'仓库员',
-  ventas:'销售', taller:'维修车间', personalChino:'中国员工', contabilidad:'会计',
+  administrador: '管理员', gerencia: '管理层', almacenero: '仓库员',
+  ventas: '销售', taller: '维修车间', personalChino: '中国员工', contabilidad: '会计',
 }
+
+const ADMIN_ITEMS = ['usuarios', 'auditoria']
 
 export function Sidebar({ collapsed, onToggle }) {
   const { perfil, logout, tienePermiso } = useAuth()
@@ -51,9 +62,6 @@ export function Sidebar({ collapsed, onToggle }) {
 
   const handleLogout = async () => { await logout(); navigate('/login') }
   const toggleLang   = () => i18n.changeLanguage(isZh ? 'es' : 'zh')
-
-  // Separador visual antes de usuarios/auditoría
-  const adminItems = ['usuarios','auditoria']
 
   return (
     <aside className={`h-screen bg-primary flex flex-col transition-all duration-200 ${collapsed ? 'w-16' : 'w-64'} shrink-0`}>
@@ -66,7 +74,7 @@ export function Sidebar({ collapsed, onToggle }) {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="text-white font-bold text-sm leading-tight truncate">SAJAMA 4x4</p>
+              <p className="text-white font-bold text-sm leading-tight truncate">Sajama.SRL</p>
               <p className="text-white/60 text-xs">{isZh ? '库存管理系统' : 'Sistema de Inventario'}</p>
             </div>
           )}
@@ -80,8 +88,8 @@ export function Sidebar({ collapsed, onToggle }) {
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
         {MENU.filter(m => tienePermiso(m.modulo)).map(({ key, path, icon: Icon }, idx, arr) => {
-          const prevKey = arr[idx - 1]?.key
-          const showDivider = adminItems.includes(key) && !adminItems.includes(prevKey || '')
+          const prevKey     = arr[idx - 1]?.key
+          const showDivider = ADMIN_ITEMS.includes(key) && !ADMIN_ITEMS.includes(prevKey || '')
           return (
             <div key={key}>
               {showDivider && !collapsed && (
