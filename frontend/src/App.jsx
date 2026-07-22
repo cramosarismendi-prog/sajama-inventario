@@ -10,6 +10,7 @@ import Salidas       from './pages/Salidas'
 import Consultas     from './pages/Consultas'
 import OrdenSalida   from './pages/OrdenSalida'
 import OrdenEntrada  from './pages/OrdenEntrada'
+import Aduana        from './pages/Aduana'
 import Lista         from './pages/Lista'
 import Reportes      from './pages/Reportes'
 import Usuarios      from './pages/Usuarios'
@@ -46,13 +47,14 @@ function AppRoutes() {
         <Route path="consultas"       element={<ProtectedRoute modulo="consultas">     <Consultas     /></ProtectedRoute>} />
         <Route path="orden-salida"    element={<ProtectedRoute modulo="ordenSalida">   <OrdenSalida   /></ProtectedRoute>} />
         <Route path="orden-entrada"   element={<ProtectedRoute modulo="ordenEntrada">  <OrdenEntrada  /></ProtectedRoute>} />
+        <Route path="aduana"          element={<ProtectedRoute modulo="aduana">        <Aduana        /></ProtectedRoute>} />
         <Route path="lista"           element={<ProtectedRoute modulo="lista">         <Lista         /></ProtectedRoute>} />
         <Route path="reportes"        element={<ProtectedRoute modulo="reportes">      <Reportes      /></ProtectedRoute>} />
         <Route path="usuarios"        element={<ProtectedRoute modulo="usuarios">      <Usuarios      /></ProtectedRoute>} />
         <Route path="auditoria"       element={<ProtectedRoute modulo="usuarios">      <Auditoria     /></ProtectedRoute>} />
-        <Route path="importar"        element={<ProtectedRoute modulo="ingresos">      <ImportarExcel /></ProtectedRoute>} />
-        <Route path="scanner"         element={<ProtectedRoute modulo="ingresos">      <ScannerQR     /></ProtectedRoute>} />
-        <Route path="compras"         element={<ProtectedRoute modulo="ingresos">      <Compras       /></ProtectedRoute>} />
+        <Route path="importar"        element={<ProtectedRoute modulo="importar">      <ImportarExcel /></ProtectedRoute>} />
+        <Route path="scanner"         element={<ProtectedRoute modulo="importar">      <ScannerQR     /></ProtectedRoute>} />
+        <Route path="compras"         element={<ProtectedRoute modulo="compras">       <Compras       /></ProtectedRoute>} />
       </Route>
       <Route path="*" element={<Navigate to="/inventario" replace />} />
     </Routes>

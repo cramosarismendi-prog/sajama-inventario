@@ -159,12 +159,19 @@ export default function ImportarExcel() {
     // Cargar inventario existente para comparar
     const snapExistente = await getDocs(query(collection(db, 'inventario'), orderBy('codigo')))
     const existentes = {}
+    let maxCodigoExistente = 0
     snapExistente.docs.forEach(d => {
       const data = d.data()
       if (data.codigo) existentes[String(data.codigo)] = { id: d.id, ...data }
+      const num = Number(data.codigo)
+      if (!isNaN(num) && num > maxCodigoExistente) maxCodigoExistente = num
     })
 
-    let creados = 0, actualizados = 0, omitidos = 0
+    // Contador para asignar código correlativo a las filas que llegan sin código,
+    // continuando desde el código más alto que ya existe en el inventario.
+    let siguienteCodigoAuto = maxCodigoExistente
+
+    let creados = 0, actualizados = 0, omitidos = 0, autoAsignados = 0
     const errores = []
 
     for (let i = 0; i < filas.length; i++) {
@@ -172,6 +179,14 @@ export default function ImportarExcel() {
       setProgreso(Math.round(((i + 1) / filas.length) * 100))
 
       try {
+        // Si la fila no trae código (columna no detectada o celda vacía),
+        // se le asigna uno correlativo automáticamente.
+        if (!f.codigo) {
+          siguienteCodigoAuto += 1
+          f.codigo = siguienteCodigoAuto
+          autoAsignados += 1
+        }
+
         const codigoKey = String(f.codigo || '')
         const existe    = codigoKey ? existentes[codigoKey] : null
 
@@ -215,12 +230,12 @@ export default function ImportarExcel() {
     await registrarAccion({
       usuario: perfil?.nombre, rol: perfil?.rol,
       modulo: 'Importar Excel', accion: 'CREAR',
-      detalle: `Importó Excel: ${creados} creados, ${actualizados} actualizados, ${omitidos} errores. Archivo: ${archivo.file.name}`,
+      detalle: `Importó Excel: ${creados} creados, ${actualizados} actualizados, ${omitidos} errores, ${autoAsignados} con código auto-asignado. Archivo: ${archivo.file.name}`,
     })
 
-    setResultado({ creados, actualizados, omitidos, errores })
+    setResultado({ creados, actualizados, omitidos, errores, autoAsignados })
     setFase('done')
-    toast.success(`Importación completa: ${creados} nuevos, ${actualizados} actualizados`)
+    toast.success(`Importación completa: ${creados} nuevos, ${actualizados} actualizados` + (autoAsignados > 0 ? `, ${autoAsignados} con código auto-asignado` : ''))
   }
 
   const reiniciar = () => {
@@ -317,6 +332,11 @@ export default function ImportarExcel() {
                 )
               })}
             </div>
+            {columnas.codigo === -1 && (
+              <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800">
+                ⚠️ No se detectó la columna de código. Se asignará un código correlativo automáticamente a cada ítem al importar.
+              </div>
+            )}
           </div>
 
           {/* Preview tabla */}
@@ -338,7 +358,7 @@ export default function ImportarExcel() {
                   {filas.slice(0, 50).map((f, i) => (
                     <tr key={i} className="tr-hover">
                       <td className="td text-gray-400">{i+1}</td>
-                      <td className="td font-mono font-bold text-primary">{f.codigo || '—'}</td>
+                      <td className="td font-mono font-bold text-primary">{f.codigo || <span className="text-yellow-500 italic">auto</span>}</td>
                       <td className="td font-medium max-w-[160px] truncate" title={f.descripcion}>{f.descripcion || '—'}</td>
                       <td className="td text-gray-500 max-w-[120px] truncate">{f.descripcionZh || '—'}</td>
                       <td className="td text-gray-500">{f.modelo || '—'}</td>
@@ -400,6 +420,11 @@ export default function ImportarExcel() {
                 <p className="text-xs text-red-600 mt-1">Con errores</p>
               </div>
             </div>
+            {resultado.autoAsignados > 0 && (
+              <div className="max-w-md mx-auto mt-3 bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-sm text-yellow-800">
+                ⚠️ {resultado.autoAsignados} ítem(s) no traían código en el Excel y se les asignó uno correlativo automáticamente. Revísalos en el inventario para confirmar que estén correctos.
+              </div>
+            )}
             {resultado.errores.length > 0 && (
               <button onClick={() => setVerErr(true)} className="btn-secondary btn-sm mt-4">
                 <AlertTriangle size={13}/> Ver {resultado.errores.length} errores

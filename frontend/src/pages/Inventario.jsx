@@ -52,10 +52,10 @@ export default function Inventario() {
   const handleGuardar = async (data) => {
     try {
       if (editItem) {
-        await actualizarItem(editItem.id, data, perfil.nombre)
+        await actualizarItem(editItem.id, data, perfil.nombre, perfil.rol, editItem)
         toast.success('Ítem actualizado correctamente')
       } else {
-        await crearItem(data, perfil.nombre)
+        await crearItem(data, perfil.nombre, perfil.rol)
         toast.success('Ítem creado correctamente')
       }
       setModal(false); setEdit(null)
@@ -64,7 +64,7 @@ export default function Inventario() {
 
   const handleEliminar = async () => {
     try {
-      await eliminarItem(delItem.id)
+      await eliminarItem(delItem.id, delItem, perfil.nombre, perfil.rol)
       toast.success('Ítem eliminado')
       setDel(null)
     } catch (e) { toast.error('Error al eliminar') }

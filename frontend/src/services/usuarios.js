@@ -1,9 +1,10 @@
 import {
-  collection, doc, getDocs, setDoc, updateDoc,
+  collection, doc, getDocs, setDoc, updateDoc, deleteDoc,
   serverTimestamp, onSnapshot, query, orderBy
 } from 'firebase/firestore'
-import { createUserWithEmailAndPassword } from 'firebase/auth'
-import { auth, db } from './firebase'
+import { createUserWithEmailAndPassword, getAuth, signOut } from 'firebase/auth'
+import { initializeApp, getApps } from 'firebase/app'
+import { db } from './firebase'
 
 export const ROLES = [
   { value: 'administrador',  label: 'Administrador' },
@@ -13,22 +14,34 @@ export const ROLES = [
   { value: 'taller',         label: 'Taller Mecánico' },
   { value: 'personalChino',  label: 'Personal Chino' },
   { value: 'contabilidad',   label: 'Contabilidad' },
+  { value: 'aduanas',        label: 'Aduanas' },
 ]
 
-export const crearUsuario = async (email, password, datos) => {
-  // 1. Crear en Firebase Authentication
-  const cred = await createUserWithEmailAndPassword(auth, email, password)
-  const uid  = cred.user.uid
+const firebaseConfig = {
+  apiKey:            'AIzaSyCTTcyK-mHSQJQnHGmG-sOVl2IHYx00mXw',
+  authDomain:        'sajama-inventario-b5b17.firebaseapp.com',
+  projectId:         'sajama-inventario-b5b17',
+  storageBucket:     'sajama-inventario-b5b17.firebasestorage.app',
+  messagingSenderId: '838813749958',
+  appId:             '1:838813749958:web:7a1fb73f890912c86d44ef',
+}
 
-  // 2. Guardar en Firestore con setDoc (garantiza que se usa el UID correcto)
+const getSecondaryAuth = () => {
+  const app = getApps().find(a => a.name === 'secondary')
+    || initializeApp(firebaseConfig, 'secondary')
+  return getAuth(app)
+}
+
+export const crearUsuario = async (email, password, datos) => {
+  const secondaryAuth = getSecondaryAuth()
+  const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password)
+  const uid  = cred.user.uid
+  await signOut(secondaryAuth)
   await setDoc(doc(db, 'usuarios', uid), {
-    ...datos,
-    email,
-    uid,
+    ...datos, email, uid,
     creadoEn: serverTimestamp(),
     activo: true,
   })
-
   return uid
 }
 
@@ -39,9 +52,15 @@ export const getUsuarios = async () => {
 
 export const actualizarUsuario = async (uid, datos) => {
   await updateDoc(doc(db, 'usuarios', uid), {
-    ...datos,
-    actualizadoEn: serverTimestamp()
+    ...datos, actualizadoEn: serverTimestamp()
   })
+}
+
+// Elimina el documento de Firestore
+// Nota: el usuario en Authentication queda inactivo pero no se elimina
+// (eliminar de Auth requiere Admin SDK / Cloud Function)
+export const eliminarUsuario = async (uid) => {
+  await deleteDoc(doc(db, 'usuarios', uid))
 }
 
 export const suscribirUsuarios = (callback) => {

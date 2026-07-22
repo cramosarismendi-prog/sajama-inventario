@@ -1,8 +1,12 @@
 /**
  * Servicio de traducción ES → Chino Simplificado
- * Diccionario local de términos técnicos de repuestos y maquinaria pesada
- * No requiere internet ni API Key — funciona completamente offline
+ * 1° Diccionario local de términos técnicos (offline, rápido, preciso)
+ * 2° Respaldo con MyMemory API (online) para términos que el diccionario no conoce
  */
+
+// Si agregás tu correo aquí, MyMemory sube el límite gratuito de
+// 5,000 a 50,000 caracteres por día. Dejalo vacío '' si no querés usarlo.
+const MYMEMORY_EMAIL = ''
 
 // ── Diccionario principal de términos técnicos ────────────────────────
 const DICCIONARIO = {
@@ -45,9 +49,23 @@ const DICCIONARIO = {
   'líquido refrigerante':      '冷却液',
   'líquido de frenos':         '制动液',
   'grasa':                     '润滑脂',
+  'grasa de litio':            '锂基润滑脂',
+  'grasa de calcio':           '钙基润滑脂',
+  'grasa sódica':              '钠基润滑脂',
+  'grasa multiuso':            '多功能润滑脂',
+  'grasa multiusos':           '多功能润滑脂',
+  'grasa de grafito':          '石墨润滑脂',
+  'grasa de silicona':         '硅基润滑脂',
   'lubricante':                '润滑剂',
   'refrigerante':              '防冻液',
   'anticongelante':            '防冻剂',
+  'litio':                     '锂',
+  'calcio':                    '钙',
+  'sódico':                    '钠基',
+  'sódica':                    '钠基',
+  'grafito':                   '石墨',
+  'silicona':                  '硅胶',
+  'poliurea':                  '聚脲',
 
   // ── Uñas y dientes de excavadora ─────────────────────────────────────
   'uña':                       '斗齿',
@@ -197,48 +215,127 @@ const DICCIONARIO = {
   'genérico':                  '通用',
 }
 
+// Conectores en español que se omiten al traducir, para no dejar
+// palabras sueltas en español mezcladas con el resultado en chino.
+const CONECTORES = new Set(['de', 'del', 'la', 'el', 'los', 'las', 'en', 'con', 'para', 'por', 'y', 'a', 'al'])
+
+// Detecta si una palabra es un código/modelo técnico (contiene al menos un dígito),
+// en cuyo caso se mantiene tal cual en el resultado (ej: "15W-40", "GL-5", "8PK1340").
+const esCodigoTecnico = (palabraOriginal) => /\d/.test(palabraOriginal)
+
+// Claves del diccionario ordenadas por cantidad de palabras (de más a menos),
+// para intentar siempre la coincidencia de frase más larga primero.
+const CLAVES_ORDENADAS = Object.keys(DICCIONARIO)
+  .map(clave => ({ clave, partes: clave.split(/\s+/) }))
+  .sort((a, b) => b.partes.length - a.partes.length)
+
+// ── Respaldo online: MyMemory API ───────────────────────────────────
+// Se usa SOLO cuando el diccionario local no reconoce nada del texto.
+// Gratuita, sin necesidad de API key. Límite: 5,000 caracteres/día sin
+// email configurado, o 50,000/día si se define MYMEMORY_EMAIL arriba.
+async function traducirConMyMemory(texto) {
+  try {
+    const params = new URLSearchParams({
+      q: texto,
+      langpair: 'es|zh-CN',
+    })
+    if (MYMEMORY_EMAIL) params.set('de', MYMEMORY_EMAIL)
+
+    const res = await fetch(`https://api.mymemory.translated.net/get?${params.toString()}`)
+    if (!res.ok) return ''
+
+    const data = await res.json()
+    const traduccion = data?.responseData?.translatedText
+    const confianza  = data?.responseData?.match
+
+    if (!traduccion) return ''
+    // Si devolvió el mismo texto sin traducir, o confianza muy baja, descartar
+    if (traduccion.trim().toLowerCase() === texto.trim().toLowerCase()) return ''
+    if (typeof confianza === 'number' && confianza < 0.3) return ''
+    // Verificación básica de que el resultado contenga caracteres chinos
+    if (!/[\u4e00-\u9fff]/.test(traduccion)) return ''
+
+    return traduccion.trim()
+  } catch (e) {
+    // Sin internet, API caída, o límite diario alcanzado: seguimos sin traducción online
+    return ''
+  }
+}
+
 // ── Función principal de traducción ─────────────────────────────────
 const CACHE = new Map()
 
 export const traducirAlChino = async (texto) => {
   if (!texto || texto.trim().length < 2) return ''
 
-  const textoBajo = texto.trim().toLowerCase()
+  const original = texto.trim()
+  const textoBajo = original.toLowerCase()
   if (CACHE.has(textoBajo)) return CACHE.get(textoBajo)
 
-  // 1. Búsqueda exacta
+  // 1. Búsqueda exacta de la frase completa en el diccionario local
   if (DICCIONARIO[textoBajo]) {
     CACHE.set(textoBajo, DICCIONARIO[textoBajo])
     return DICCIONARIO[textoBajo]
   }
 
-  // 2. Buscar si el texto contiene alguna frase del diccionario (de más largo a más corto)
-  const claves = Object.keys(DICCIONARIO).sort((a, b) => b.length - a.length)
-  for (const clave of claves) {
-    if (textoBajo.includes(clave)) {
-      // Construir traducción reemplazando la parte conocida
-      const zhParte = DICCIONARIO[clave]
-      // Extraer el resto (modelo/código técnico)
-      const resto = texto.trim().replace(new RegExp(clave, 'i'), '').trim()
-      const resultado = resto ? `${zhParte} ${resto}` : zhParte
-      CACHE.set(textoBajo, resultado)
-      return resultado
+  // 2. Segmentación palabra por palabra: recorre todo el texto de
+  //    izquierda a derecha, buscando en cada posición la frase más
+  //    larga posible del diccionario, para traducir el texto completo
+  //    (no solo la primera coincidencia).
+  const palabrasOriginales = original.split(/\s+/).filter(Boolean)
+  const palabrasBajas = palabrasOriginales.map(p => p.toLowerCase())
+
+  const resultado = []
+  let i = 0
+  let huboTraduccion = false
+
+  while (i < palabrasBajas.length) {
+    let coincidencia = null
+
+    for (const { clave, partes } of CLAVES_ORDENADAS) {
+      const n = partes.length
+      if (i + n > palabrasBajas.length) continue
+      const segmento = palabrasBajas.slice(i, i + n).join(' ')
+      if (segmento === clave) { coincidencia = { n, zh: DICCIONARIO[clave] }; break }
     }
+
+    if (coincidencia) {
+      resultado.push(coincidencia.zh)
+      i += coincidencia.n
+      huboTraduccion = true
+      continue
+    }
+
+    const palabraOriginal = palabrasOriginales[i]
+    const palabraBaja = palabrasBajas[i]
+
+    if (CONECTORES.has(palabraBaja)) {
+      // Conector español — se omite, no se mezcla idioma.
+    } else if (esCodigoTecnico(palabraOriginal)) {
+      // Código/modelo técnico — se mantiene tal cual.
+      resultado.push(palabraOriginal)
+    }
+    // Palabra en español sin traducción conocida: se omite por ahora,
+    // se intentará resolver todo el texto con la API en el paso 3.
+
+    i += 1
   }
 
-  // 3. Traducción palabra por palabra
-  const palabras = textoBajo.split(/[\s\/\-]+/).filter(Boolean)
-  const traducidas = palabras.map(p => DICCIONARIO[p] || p)
-  const resultado = traducidas.join(' ')
-
-  // Si al menos una palabra fue traducida, devolver resultado
-  const alguna = traducidas.some((t, i) => t !== palabras[i])
-  if (alguna) {
-    CACHE.set(textoBajo, resultado)
-    return resultado
+  if (huboTraduccion && resultado.length > 0) {
+    const final = resultado.join('')
+    CACHE.set(textoBajo, final)
+    return final
   }
 
-  // 4. No encontrado — devolver vacío (el usuario puede llenar manualmente)
+  // 3. El diccionario no reconoció nada — intentar con MyMemory (online)
+  const resultadoAPI = await traducirConMyMemory(original)
+  if (resultadoAPI) {
+    CACHE.set(textoBajo, resultadoAPI)
+    return resultadoAPI
+  }
+
+  // 4. No se encontró ninguna traducción — devolver vacío
+  //    (el usuario puede completar manualmente).
   return ''
 }
 

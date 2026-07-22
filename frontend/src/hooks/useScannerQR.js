@@ -14,6 +14,11 @@ export function useScannerQR(onQRLeido) {
   useEffect(() => {
     if (!escuchando) return
     const handleKey = (e) => {
+      // Evita que las teclas del lector se escriban directamente en
+      // cualquier input que tenga el foco — solo deben alimentar el
+      // buffer interno del scanner, nunca "filtrarse" a un campo visible.
+      e.preventDefault()
+
       if (e.key === 'Enter') {
         clearTimeout(timerRef.current)
         procesarBuffer(bufferRef.current)
@@ -27,7 +32,16 @@ export function useScannerQR(onQRLeido) {
     return () => { window.removeEventListener('keydown', handleKey); clearTimeout(timerRef.current) }
   }, [escuchando, procesarBuffer])
 
-  const activar    = () => { bufferRef.current = ''; setEscuchando(true)  }
+  const activar = () => {
+    // Quita el foco de cualquier input activo antes de empezar a
+    // escuchar, para que el lector no le "escriba" directamente a un
+    // campo visible mientras arma el buffer interno.
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+    bufferRef.current = ''
+    setEscuchando(true)
+  }
   const desactivar = () => { bufferRef.current = ''; setEscuchando(false) }
 
   return { escuchando, activar, desactivar }

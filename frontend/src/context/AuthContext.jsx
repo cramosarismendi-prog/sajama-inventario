@@ -1,5 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import {
+  onAuthStateChanged, signInWithEmailAndPassword, signOut,
+  EmailAuthProvider, reauthenticateWithCredential, updatePassword
+} from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from '../services/firebase'
 import { getPermisosEfectivos, puedeDo } from '../services/permisos'
@@ -71,8 +74,21 @@ export function AuthProvider({ children }) {
     return permisos[modulo]?.[accion] ?? false
   }
 
+  // Cambia la contraseña del usuario ACTUALMENTE logueado.
+  // Firebase exige reautenticar con la contraseña actual antes de
+  // permitir el cambio — esto es lo que garantiza que nadie pueda
+  // usar esta función para tocar la cuenta de otra persona: solo
+  // funciona sobre auth.currentUser, y solo si se conoce la
+  // contraseña actual de ESA misma cuenta.
+  const cambiarPassword = async (passwordActual, passwordNueva) => {
+    if (!auth.currentUser) throw new Error('No hay sesión activa')
+    const credential = EmailAuthProvider.credential(auth.currentUser.email, passwordActual)
+    await reauthenticateWithCredential(auth.currentUser, credential)
+    await updatePassword(auth.currentUser, passwordNueva)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, perfil, permisos, loading, login, logout, tienePermiso, puede }}>
+    <AuthContext.Provider value={{ user, perfil, permisos, loading, login, logout, tienePermiso, puede, cambiarPassword }}>
       {children}
     </AuthContext.Provider>
   )

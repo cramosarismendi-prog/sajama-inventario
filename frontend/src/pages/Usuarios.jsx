@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Plus, Shield, UserCheck, UserX, Eye, EyeOff, Settings } from 'lucide-react'
+import { Plus, Shield, UserCheck, UserX, Eye, EyeOff, Settings, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { suscribirUsuarios, crearUsuario, actualizarUsuario, ROLES } from '../services/usuarios'
+import { suscribirUsuarios, crearUsuario, actualizarUsuario, eliminarUsuario, ROLES } from '../services/usuarios'
 import { registrarAccion } from '../services/auditoria'
 import { useAuth } from '../context/AuthContext'
 import { Modal } from '../components/ui/Modal'
 import { Badge } from '../components/ui/Badge'
 import { PageLoader } from '../components/ui/Spinner'
 import { EmptyState } from '../components/ui/EmptyState'
+import { Confirm } from '../components/ui/Confirm'
 import { useForm } from 'react-hook-form'
 import { MODULOS, ACCIONES, PERMISOS_ROL, getPermisosEfectivos } from '../services/permisos'
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
@@ -216,6 +217,7 @@ export default function Usuarios() {
   const [loading,       setLoading]       = useState(true)
   const [modalCrear,    setModalCrear]    = useState(false)
   const [modalPermisos, setModalPermisos] = useState(null)
+  const [delUsuario,    setDelUsuario]    = useState(null)
 
   const soloLectura = perfil?.rol === 'gerencia'
 
@@ -247,8 +249,26 @@ export default function Usuarios() {
     if (soloLectura) return
     try {
       await actualizarUsuario(u.id, { activo: !u.activo })
+      await registrarAccion({
+        usuario: perfil?.nombre, rol: perfil?.rol, modulo: 'Usuarios',
+        accion: u.activo ? 'RECHAZAR' : 'APROBAR',
+        detalle: (u.activo ? 'Desactivó' : 'Activó') + ' al usuario ' + u.nombre,
+      })
       toast.success('Usuario ' + (u.activo ? 'desactivado' : 'activado'))
     } catch(e) { toast.error('Error') }
+  }
+
+  const handleEliminar = async () => {
+    try {
+      await eliminarUsuario(delUsuario.id)
+      await registrarAccion({
+        usuario: perfil.nombre, rol: perfil.rol,
+        modulo: 'Usuarios', accion: 'ELIMINAR',
+        detalle: 'Eliminó usuario ' + delUsuario.nombre + ' (' + delUsuario.email + ')',
+      })
+      toast.success('Usuario ' + delUsuario.nombre + ' eliminado')
+      setDelUsuario(null)
+    } catch(e) { toast.error('Error al eliminar: ' + e.message) }
   }
 
   const rolLabel = (r) => ROLES.find(x => x.value === r)?.label || r
@@ -321,11 +341,20 @@ export default function Usuarios() {
                     <td className="td">
                       <div className="flex gap-1.5">
                         {!soloLectura && (
-                          <button onClick={() => setModalPermisos(u)}
-                            className="p-1.5 rounded-lg hover:bg-primary-pale text-primary transition-colors"
-                            title="Editar permisos">
-                            <Settings size={14}/>
-                          </button>
+                          <>
+                            <button onClick={() => setModalPermisos(u)}
+                              className="p-1.5 rounded-lg hover:bg-primary-pale text-primary transition-colors"
+                              title="Editar permisos">
+                              <Settings size={14}/>
+                            </button>
+                            {perfil?.uid !== u.id && (
+                              <button onClick={() => setDelUsuario(u)}
+                                className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"
+                                title="Eliminar usuario">
+                                <Trash2 size={14}/>
+                              </button>
+                            )}
+                          </>
                         )}
                         <button onClick={() => toggleActivo(u)}
                           className={"btn-sm " + (u.activo ? 'btn-secondary' : 'btn-success')}>
@@ -347,6 +376,13 @@ export default function Usuarios() {
         title="Crear nuevo usuario" size="lg">
         <FormUsuario onGuardar={handleCrear} onCancelar={() => setModalCrear(false)}/>
       </Modal>
+
+      <Confirm
+        open={!!delUsuario}
+        mensaje={'¿Eliminar al usuario "' + (delUsuario?.nombre || '') + '"? Esta acción no se puede deshacer.'}
+        onConfirm={handleEliminar}
+        onCancel={() => setDelUsuario(null)}
+      />
 
       <Modal open={!!modalPermisos} onClose={() => setModalPermisos(null)}
         title={"Permisos de " + (modalPermisos?.nombre || '')} size="lg">

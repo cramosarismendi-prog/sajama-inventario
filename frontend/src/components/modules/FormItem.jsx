@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { useEffect, useRef, useState } from 'react'
-import { Image, MapPin, X, Loader2, Languages, Scan } from 'lucide-react'
+import { Image, MapPin, X, Loader2, Languages, Scan, PackageSearch } from 'lucide-react'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore'
 import { db } from '../../services/firebase'
@@ -35,6 +35,11 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
   const [traduciendoD, setTraduciendoD] = useState(false)
   const fileRef   = useRef()
   const timerDesc = useRef()
+
+  // Stock con el que abrió el modal, para poder comparar y avisar si se está ajustando manualmente
+  const stockOriginal = item?.stock ?? 0
+  const stockActual = watch('stock')
+  const stockCambiado = item && stockActual !== undefined && Number(stockActual) !== Number(stockOriginal)
 
   const { escuchando, activar, desactivar } = useScannerQR(async (textoQR) => {
     const parsed = parsearQR(textoQR)
@@ -249,10 +254,28 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
             {UBICACIONES.map(u => <option key={u} value={u}>{u}</option>)}
           </select>
         </div>
+
         {!item && (
           <div>
             <label className="label">Stock inicial</label>
             <input className="input" type="number" {...register('stockInicial', { valueAsNumber: true })}/>
+          </div>
+        )}
+
+        {/* NUEVO: solo en modo edicion, permite corregir la cantidad de stock manualmente */}
+        {item && (
+          <div>
+            <label className="label flex items-center gap-1">
+              <PackageSearch size={13} className="text-primary-light"/> Stock actual
+            </label>
+            <input className="input" type="number"
+              {...register('stock', { valueAsNumber: true, min: { value: 0, message: 'No puede ser negativo' } })}/>
+            {errors.stock && <p className="text-red-500 text-xs mt-1">{errors.stock.message}</p>}
+            {stockCambiado && (
+              <p className="text-xs text-yellow-700 bg-yellow-50 rounded-md px-2 py-1 mt-1">
+                Ajuste manual: {stockOriginal} → {stockActual}. Se registrará en auditoría.
+              </p>
+            )}
           </div>
         )}
       </div>
