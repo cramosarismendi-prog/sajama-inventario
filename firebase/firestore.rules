@@ -1,8 +1,73 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
+
+    function isAuth() { return request.auth != null; }
+    function isAdmin() {
+      return isAuth() && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'administrador';
+    }
+    function isAdminOrGerencia() {
+      return isAuth() && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol in ['administrador','gerencia'];
+    }
+    function puedeEscribirInventario() {
+      return isAuth() && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol in ['administrador','gerencia','almacenero'];
+    }
+    function puedeVerAuditoria() {
+      return isAuth() && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol in ['administrador','gerencia','almacenero'];
+    }
+    function puedeGestionarAduana() {
+      return isAuth() && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol in ['administrador','gerencia','almacenero'];
+    }
+
+    match /inventario/{id} {
+      allow read: if isAuth();
+      allow write: if puedeEscribirInventario();
+    }
+    match /ingresos/{id} {
+      allow read: if isAuth();
+      allow write: if isAuth();
+    }
+    match /salidas/{id} {
+      allow read:   if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth();
+    }
+    match /ordenes_salida/{id} {
+      allow read, write: if isAuth();
+    }
+    match /ordenes_entrada/{id} {
+      allow read, write: if isAuth();
+    }
+    match /aduana/{id} {
+      allow read, write: if puedeGestionarAduana();
+    }
+    match /compras_articulos/{id} {
+      allow read, write: if isAuth();
+    }
+    match /compras_movimientos/{id} {
+      allow read, write: if isAuth();
+    }
+    match /auditoria/{id} {
+      allow read:  if puedeVerAuditoria();
+      allow write: if isAuth();
+    }
+    match /usuarios/{uid} {
+      allow read:   if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+    match /contadores/{id} {
+      allow read, write: if isAuth();
+    }
+    match /compras_solicitudes/{id} {
+      allow read, write: if isAuth();
+    }
+    match /compras_salidas_insumos/{id} {
+      allow read, write: if isAuth();
+    }
+    match /compras_ingresos_material/{id} {
+      allow read, write: if isAuth();
     }
   }
 }
