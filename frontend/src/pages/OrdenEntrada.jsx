@@ -2,10 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { getItems } from '../services/inventario'
 import { useAuth } from '../context/AuthContext'
 import { PageLoader } from '../components/ui/Spinner'
-import { Printer, FilePlus, Save, Plus, Trash2 } from 'lucide-react'
+import { Printer, FilePlus, Save, Plus, Trash2, Scan } from 'lucide-react'
 import { format } from 'date-fns'
 import { collection, addDoc, updateDoc, serverTimestamp, doc, runTransaction, writeBatch, increment } from 'firebase/firestore'
 import { db } from '../services/firebase'
+import { useScannerQR, parsearQR } from '../hooks/useScannerQR'
+import { traducirAlChino } from '../services/traduccion'
 import { registrarAccion } from '../services/auditoria'
 import toast from 'react-hot-toast'
 
@@ -41,8 +43,8 @@ export default function OrdenEntrada() {
   const [loading,     setLoading] = useState(true)
   const [numSolicitud,setNum]     = useState('')
   const numRef = useRef('')
-  const docIdRef = useRef(null)               // ID del documento ya guardado en Firestore (null = aún no existe)
-  const filasPersistidasRef = useRef({})       // { itemId: cantidad } — lo último que quedó sumado en inventario
+  const docIdRef = useRef(null)
+  const filasPersistidasRef = useRef({})
   const [fecha,       setFecha]   = useState(format(new Date(), 'yyyy-MM-dd'))
   const [fuente,      setFuente]  = useState('importacion')
   const [proveedor,   setProv]    = useState('')
@@ -50,6 +52,7 @@ export default function OrdenEntrada() {
   const [firmas,      setFirmas]  = useState(firmasVacias())
   const [guardando,   setGuardando] = useState(false)
   const [guardadoUnaVez, setGuardadoUnaVez] = useState(false)
+  const [filaActiva,  setFilaActiva] = useState(0)
   const [filas, setFilas] = useState(Array.from({length: FILAS_INICIALES}, filaVacia))
 
   const asegurarNumero = async () => {
@@ -73,6 +76,41 @@ export default function OrdenEntrada() {
     })
   }
 
+  // ── Scanner QR integrado en la tabla ─────────────────────────────
+  const { escuchando: scannerActivo, activar: activarScanner, desactivar: desactivarScanner } = useScannerQR(async (textoQR) => {
+    const parsed = parsearQR(textoQR)
+    if (!parsed) { toast.error('QR no reconocido'); return }
+
+    const item = items.find(i => String(i.codigo) === String(parsed.codigo))
+
+    let descZh = item?.descripcionZh || ''
+    if (!descZh && parsed.descripcion && parsed.descripcion.length > 2) {
+      try { descZh = await traducirAlChino(parsed.descripcion) } catch(e) { descZh = '' }
+    }
+
+    setFilas(prev => {
+      const n = [...prev]
+      n[filaActiva] = {
+        ...n[filaActiva],
+        itemId: item?.id || '',
+        descZh: descZh || item?.descripcionZh || '',
+        descEs: item?.descripcion || parsed.descripcion,
+        modelo: item?.modelo || '',
+        serie:  item?.serie  || parsed.serie || '',
+        unidad: item?.unidad || '',
+        precioUnitario: item?.precio || n[filaActiva]?.precioUnitario || '',
+      }
+      return n
+    })
+    toast.success('QR leído fila ' + (filaActiva+1) + ': ' + (item?.descripcion || parsed.descripcion))
+
+    setFilaActiva(prev => {
+      const siguiente = prev + 1
+      setFilas(f => (siguiente >= f.length ? [...f, filaVacia()] : f))
+      return siguiente
+    })
+  })
+
   useEffect(() => {
     getItems().then(i => { setItems(i); setLoading(false) })
     if (perfil?.nombre) setRecibe(perfil.nombre)
@@ -93,10 +131,6 @@ export default function OrdenEntrada() {
     })
   }
 
-  // ── Lógica de guardado real, compartida entre "Guardar" e "Imprimir" ──
-  // Crea el documento la primera vez; en llamadas posteriores lo ACTUALIZA
-  // (no crea uno nuevo), y solo aplica al inventario la DIFERENCIA de stock
-  // respecto a lo que ya se había sumado antes.
   const guardarOrden = async (numero) => {
     const filasValidas = filas.filter(f => f.descEs||f.descZh||f.cantidad)
     if (filasValidas.length === 0) {
@@ -132,8 +166,6 @@ export default function OrdenEntrada() {
         batch.update(ordenRef, datosOrden)
       }
 
-      // Aplica solo la DIFERENCIA de stock respecto a lo persistido anteriormente.
-      // Ítems que ya no están en la orden (se borraron) también revierten su suma.
       const itemsTocados = new Set([
         ...filasConTotal.filter(f => f.itemId).map(f => f.itemId),
         ...Object.keys(filasPersistidasRef.current),
@@ -159,7 +191,6 @@ export default function OrdenEntrada() {
         detalle: `Entrada ${numero}: ${filasValidas.length} ítem(s), total ${totalCantidad} unidades, ${montoTotal.toLocaleString()} Bs`,
       })
 
-      // Actualiza las referencias de control para la próxima edición
       docIdRef.current = ordenRef.id
       const nuevoMapa = {}
       filasConTotal.forEach(f => { if (f.itemId) nuevoMapa[f.itemId] = Number(f.cantidad) || 0 })
@@ -235,9 +266,8 @@ td { border:1px solid #aaa; padding:2px 4px; height:15px; }
 .fc { border-right:1px solid #999; padding:5px 6px; font-size:8pt; }
 .fc:last-child { border-right:none; }
 .fc1 { flex:0 0 38%; }
-.fc2 { flex:0 0 17%; display:flex; align-items:center; justify-content:center; }
+.fc2 { flex:0 0 17%; }
 .fc3 { flex:1; }
-.sello { width:54px; height:54px; border-radius:50%; border:2px solid #1d7044; display:flex; align-items:center; justify-content:center; text-align:center; font-size:7.5pt; font-weight:700; color:#1d7044; line-height:1.3; }
 .lf { border-bottom:1px solid #aaa; margin:6px 0 2px 0; min-height:14px; padding:1px 2px; font-weight:400; }
 .lbl { font-weight:700; margin-top:8px; }
 .nota { color:#1d7044; font-size:7.5pt; margin-top:5px; }
@@ -295,7 +325,7 @@ td { border:1px solid #aaa; padding:2px 4px; height:15px; }
     <div class="lbl" style="margin-top:12px">仓库管理层批准:</div><div>Aprobado Por (GERENCIA):</div>
     <div class="lf">${firmas.aprobadoGerencia||''}</div>
   </div>
-  <div class="fc fc2"><div class="sello">SELLO DE<br/>ALMACEN</div></div>
+  <div class="fc fc2"></div>
   <div class="fc fc3">
     <div class="lbl">交付者:</div><div>Entregado por:</div><div class="lf">${firmas.entregadoPor||''}</div>
     <div class="lbl" style="margin-top:10px">接收人:</div><div>Recibido Por:</div><div class="lf">${firmas.recibidoPor||''}</div>
@@ -330,6 +360,7 @@ window.onload = () => {
     setProv('')
     setRecibe(perfil?.nombre || '')
     setFilas(Array.from({length: FILAS_INICIALES}, filaVacia))
+    setFilaActiva(0)
     setFirmas(firmasVacias())
   }
 
@@ -337,21 +368,35 @@ window.onload = () => {
 
   return (
     <div className="space-y-4 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h1>Orden de Entrada / 入库单</h1>
           <p className="text-sm text-gray-500">入库收料单表</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button onClick={nuevaOrden} className="btn-secondary btn-sm"><FilePlus size={14}/> Nueva</button>
           <button onClick={guardar} disabled={guardando} className="btn-secondary btn-sm">
             <Save size={14}/> {guardando ? 'Guardando...' : (docIdRef.current ? 'Actualizar' : 'Guardar')}
+          </button>
+          <button onClick={scannerActivo ? desactivarScanner : () => { setFilaActiva(0); activarScanner() }}
+            className={scannerActivo ? 'btn-danger btn-sm' : 'btn-secondary btn-sm'}>
+            <Scan size={14}/> {scannerActivo ? 'Cancelar scan' : 'Scanner QR'}
           </button>
           <button onClick={imprimir} disabled={guardando} className="btn-success btn-sm">
             <Printer size={14}/> {guardando ? 'Guardando...' : 'Imprimir / PDF'}
           </button>
         </div>
       </div>
+
+      {scannerActivo && (
+        <div className="bg-success text-white rounded-xl px-4 py-3 flex items-center gap-3">
+          <Scan size={18} className="animate-pulse shrink-0"/>
+          <p className="text-sm font-medium flex-1">
+            Scanner activo — Fila {filaActiva + 1} lista. Escanea el QR del producto.
+          </p>
+          <button onClick={desactivarScanner} className="text-white/70 hover:text-white text-xs underline">Cancelar</button>
+        </div>
+      )}
 
       <div className="card space-y-3">
         <div className="grid grid-cols-2 gap-4">
@@ -379,7 +424,7 @@ window.onload = () => {
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-green-50">
-                <th className="th w-8">序号<br/>No.</th>
+                <th className="th w-10 text-center">序号<br/>No.</th>
                 <th className="th">中文名称<br/>Desc. Chino</th>
                 <th className="th">西语名称<br/>Desc. Español</th>
                 <th className="th">规格型号<br/>Modelo</th>
@@ -396,8 +441,15 @@ window.onload = () => {
               {filas.map((f, idx) => {
                 const precioTotal = (Number(f.cantidad) || 0) * (Number(f.precioUnitario) || 0)
                 return (
-                <tr key={idx} className="border-b border-gray-100">
-                  <td className="td text-center text-gray-400 font-bold">{idx+1}</td>
+                <tr key={idx} className={`border-b border-gray-100 ${filaActiva === idx && scannerActivo ? 'bg-green-50' : ''}`}>
+                  <td className="td p-1 text-center">
+                    <button type="button"
+                      onClick={() => { setFilaActiva(idx); activarScanner() }}
+                      className={"w-7 h-7 rounded-full flex items-center justify-center mx-auto transition-all " + (filaActiva === idx && scannerActivo ? 'bg-success text-white' : 'bg-gray-100 hover:bg-green-50 text-gray-500 hover:text-success')}
+                      title="Escanear QR en esta fila">
+                      {filaActiva === idx && scannerActivo ? <Scan size={12}/> : idx+1}
+                    </button>
+                  </td>
                   <td className="td p-1">
                     <input className="w-full text-xs border border-gray-200 rounded px-1 py-0.5 focus:outline-none" value={f.descZh} onChange={e=>actualizarFila(idx,'descZh',e.target.value)}/>
                   </td>
@@ -453,32 +505,32 @@ window.onload = () => {
           <div className="p-3 border-r border-gray-300 space-y-3">
             <div>
               <p className="font-bold">申请人签名 / Firma del solicitante:</p>
-              <input className="w-full border-b border-gray-400 mt-2 text-sm py-1 focus:outline-none focus:border-primary"
+              <input className="w-full border-b border-gray-400 mt-2 text-sm py-1 focus:outline-none focus:border-success"
                 placeholder="Nombre" value={firmas.firmaSolicitante} onChange={e=>actualizarFirma('firmaSolicitante', e.target.value)}/>
             </div>
             <div>
               <p className="font-bold">仓库管理层批准 / Aprobado Por (GERENCIA):</p>
-              <input className="w-full border-b border-gray-400 mt-2 text-sm py-1 focus:outline-none focus:border-primary"
+              <input className="w-full border-b border-gray-400 mt-2 text-sm py-1 focus:outline-none focus:border-success"
                 placeholder="Nombre" value={firmas.aprobadoGerencia} onChange={e=>actualizarFirma('aprobadoGerencia', e.target.value)}/>
             </div>
           </div>
           <div className="flex items-center justify-center border-r border-gray-300 p-4">
-            <div className="w-20 h-20 rounded-full border-2 border-green-500 flex items-center justify-center text-center text-green-700 font-bold text-xs leading-tight">SELLO DE<br/>ALMACÉN</div>
+            {/* Espacio reservado para el sello físico */}
           </div>
           <div className="p-3 space-y-3">
             <div>
               <p className="font-bold">交付者 / Entregado por:</p>
-              <input className="w-full border-b border-gray-400 mt-2 text-sm py-1 focus:outline-none focus:border-primary"
+              <input className="w-full border-b border-gray-400 mt-2 text-sm py-1 focus:outline-none focus:border-success"
                 placeholder="Nombre" value={firmas.entregadoPor} onChange={e=>actualizarFirma('entregadoPor', e.target.value)}/>
             </div>
             <div>
               <p className="font-bold">接收人 / Recibido Por:</p>
-              <input className="w-full border-b border-gray-400 mt-2 text-sm py-1 focus:outline-none focus:border-primary"
+              <input className="w-full border-b border-gray-400 mt-2 text-sm py-1 focus:outline-none focus:border-success"
                 placeholder="Nombre" value={firmas.recibidoPor} onChange={e=>actualizarFirma('recibidoPor', e.target.value)}/>
             </div>
             <div>
               <p className="font-bold">备注 / Observaciones:</p>
-              <input className="w-full border-b border-gray-400 mt-2 text-sm py-1 focus:outline-none focus:border-primary"
+              <input className="w-full border-b border-gray-400 mt-2 text-sm py-1 focus:outline-none focus:border-success"
                 placeholder="Observaciones" value={firmas.observaciones} onChange={e=>actualizarFirma('observaciones', e.target.value)}/>
             </div>
           </div>

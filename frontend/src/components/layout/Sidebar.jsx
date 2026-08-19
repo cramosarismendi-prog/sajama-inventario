@@ -4,19 +4,23 @@ import { useAuth } from '../../context/AuthContext'
 import {
   Package, Search, FileText, FilePlus, List,
   BarChart2, Users, LogOut, Globe, ChevronLeft,
-  ChevronRight, ShieldAlert, FileSpreadsheet, ShoppingCart, FileArchive, X, KeyRound
+  ChevronRight, ShieldAlert, FileSpreadsheet, ShoppingCart, FileArchive, X, KeyRound,
+  Truck, HardHat, Calculator
 } from 'lucide-react'
 import i18n from '../../i18n'
 import { ChangePasswordModal } from '../ui/ChangePasswordModal'
 
 const MENU = [
   { key: 'inventario',   path: '/inventario',    icon: Package,         modulo: 'inventario'   },
+  { key: 'kardex',       path: '/kardex-contable', icon: Calculator,    modulo: 'kardex'       },
   { key: 'compras',      path: '/compras',        icon: ShoppingCart,    modulo: 'compras'     },
   { key: 'importar',     path: '/importar',       icon: FileSpreadsheet, modulo: 'importar'     },
   { key: 'consultas',    path: '/consultas',      icon: Search,          modulo: 'consultas'    },
   { key: 'ordenSalida',  path: '/orden-salida',   icon: FileText,        modulo: 'ordenSalida'  },
   { key: 'ordenEntrada', path: '/orden-entrada',  icon: FilePlus,        modulo: 'ordenEntrada' },
   { key: 'aduana',       path: '/aduana',         icon: FileArchive,     modulo: 'aduana'       },
+  { key: 'maquinaria',   path: '/maquinaria',     icon: Truck,           modulo: 'maquinaria'  },
+  { key: 'equipos',      path: '/equipos',        icon: HardHat,         modulo: 'equipos'     },
   { key: 'lista',        path: '/lista',          icon: List,            modulo: 'lista'        },
   { key: 'reportes',     path: '/reportes',       icon: BarChart2,       modulo: 'reportes'     },
   { key: 'usuarios',     path: '/usuarios',       icon: Users,           modulo: 'usuarios'     },
@@ -25,15 +29,15 @@ const MENU = [
 
 const LABELS = {
   es: {
-    inventario: 'Inventario', compras: 'Compras', importar: 'Importar Excel',
+    inventario: 'Inventario', kardex: 'Kardex Contable', compras: 'Compras', importar: 'Importar Excel',
     consultas: 'Consultas', ordenSalida: 'Orden de Salida', ordenEntrada: 'Orden de Entrada',
-    aduana: 'Aduana',
+    aduana: 'Aduana', maquinaria: 'Maquinaria', equipos: 'Equipos',
     lista: 'Lista Maestra', reportes: 'Reportes', usuarios: 'Usuarios', auditoria: 'Auditoría',
   },
   zh: {
-    inventario: '库存目录', compras: '采购管理', importar: '导入Excel',
+    inventario: '库存目录', kardex: '财务卡片账', compras: '采购管理', importar: '导入Excel',
     consultas: '查询', ordenSalida: '出库单', ordenEntrada: '入库单',
-    aduana: '海关',
+    aduana: '海关', maquinaria: '机械设备', equipos: '设备',
     lista: '主列表', reportes: '报告', usuarios: '用户管理', auditoria: '审计日志',
   }
 }

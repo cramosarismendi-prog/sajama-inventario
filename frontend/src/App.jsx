@@ -18,6 +18,9 @@ import Auditoria     from './pages/Auditoria'
 import ImportarExcel from './pages/ImportarExcel'
 import ScannerQR    from './pages/ScannerQR'
 import Compras      from './pages/Compras'
+import Maquinaria from './pages/Maquinaria'
+import Equipos    from './pages/Equipos'
+import KardexContable from './pages/KardexContable'
 
 function ProtectedRoute({ children, modulo }) {
   const { user, loading, tienePermiso } = useAuth()
@@ -42,11 +45,14 @@ function AppRoutes() {
       <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
         <Route index element={<Navigate to="/inventario" replace />} />
         <Route path="inventario"      element={<ProtectedRoute modulo="inventario">    <Inventario    /></ProtectedRoute>} />
+        <Route path="kardex-contable" element={<ProtectedRoute modulo="kardex">        <KardexContable /></ProtectedRoute>} />
         <Route path="ingresos"        element={<ProtectedRoute modulo="ingresos">      <Ingresos      /></ProtectedRoute>} />
         <Route path="salidas"         element={<ProtectedRoute modulo="salidas">       <Salidas       /></ProtectedRoute>} />
         <Route path="consultas"       element={<ProtectedRoute modulo="consultas">     <Consultas     /></ProtectedRoute>} />
         <Route path="orden-salida"    element={<ProtectedRoute modulo="ordenSalida">   <OrdenSalida   /></ProtectedRoute>} />
         <Route path="orden-entrada"   element={<ProtectedRoute modulo="ordenEntrada">  <OrdenEntrada  /></ProtectedRoute>} />
+        <Route path="maquinaria"      element={<ProtectedRoute modulo="maquinaria">    <Maquinaria    /></ProtectedRoute>} />
+        <Route path="equipos"         element={<ProtectedRoute modulo="equipos">       <Equipos       /></ProtectedRoute>} />
         <Route path="aduana"          element={<ProtectedRoute modulo="aduana">        <Aduana        /></ProtectedRoute>} />
         <Route path="lista"           element={<ProtectedRoute modulo="lista">         <Lista         /></ProtectedRoute>} />
         <Route path="reportes"        element={<ProtectedRoute modulo="reportes">      <Reportes      /></ProtectedRoute>} />

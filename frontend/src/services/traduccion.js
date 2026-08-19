@@ -4,11 +4,8 @@
  * 2° Respaldo con MyMemory API (online) para términos que el diccionario no conoce
  */
 
-// Si agregás tu correo aquí, MyMemory sube el límite gratuito de
-// 5,000 a 50,000 caracteres por día. Dejalo vacío '' si no querés usarlo.
 const MYMEMORY_EMAIL = ''
 
-// ── Diccionario principal de términos técnicos ────────────────────────
 const DICCIONARIO = {
   // ── Correas ──────────────────────────────────────────────────────────
   'correa':                    '皮带',
@@ -162,15 +159,132 @@ const DICCIONARIO = {
   'idler':                     '引导轮',
   'track':                     '履带',
 
-  // ── Categorías ────────────────────────────────────────────────────────
+  // ── Categorías generales ────────────────────────────────────────────
   'repuesto':                  '备件',
   'repuestos':                 '备件',
   'maquinaria':                '机械',
   'equipo':                    '设备',
   'material':                  '材料',
   'insumo':                    '耗材',
-  'herramienta':               '工具',
+  'herramienta':                '工具',
   'accesorio':                 '配件',
+
+  // ── PAPELERÍA Y ESCRITURA ──────────────────────────────────────────
+  'papel':                     '纸',
+  'papel bond':                '复印纸',
+  'papel a4':                  'A4纸',
+  'papel carta':                '信纸',
+  'papel oficio':              '公文纸',
+  'resma':                     '一令纸',
+  'resma de papel':            '一令复印纸',
+  'cuaderno':                  '笔记本',
+  'libreta':                   '记事本',
+  'agenda':                    '记事簿',
+  'block de notas':            '便签本',
+  'lapiz':                     '铅笔',
+  'lápiz':                     '铅笔',
+  'boligrafo':                 '圆珠笔',
+  'bolígrafo':                 '圆珠笔',
+  'lapicero':                  '圆珠笔',
+  'marcador':                  '记号笔',
+  'marcador permanente':       '记号笔',
+  'resaltador':                '荧光笔',
+  'plumón':                    '记号笔',
+  'corrector':                 '修正液',
+  'liquido corrector':         '修正液',
+  'goma de borrar':            '橡皮擦',
+  'borrador':                  '橡皮擦',
+  'sacapuntas':                '卷笔刀',
+  'regla':                     '尺子',
+  'tijera':                    '剪刀',
+  'tijeras':                   '剪刀',
+  'cutter':                    '美工刀',
+  'cinta adhesiva':            '胶带',
+  'cinta scotch':              '透明胶带',
+  'cinta de embalaje':         '包装胶带',
+  'pegamento':                 '胶水',
+  'goma':                      '胶水',
+  'silicona liquida':          '硅胶胶水',
+
+  // ── ARCHIVO Y OFICINA ────────────────────────────────────────────────
+  'carpeta':                   '文件夹',
+  'folder':                    '文件夹',
+  'archivador':                '档案盒',
+  'sobre':                     '信封',
+  'sobre manila':              '牛皮纸信封',
+  'clip':                      '回形针',
+  'clips':                     '回形针',
+  'clip mariposa':             '燕尾夹',
+  'gancho mariposa':           '燕尾夹',
+  'grapa':                     '订书钉',
+  'grapas':                    '订书钉',
+  'engrapadora':               '订书机',
+  'grapadora':                 '订书机',
+  'quitagrapas':               '起钉器',
+  'perforadora':               '打孔机',
+  'post it':                   '便利贴',
+  'nota adhesiva':             '便利贴',
+  'notas adhesivas':           '便利贴',
+  'separador':                 '文件分隔页',
+  'sello':                     '印章',
+  'tinta para sello':          '印油',
+  'almohadilla de tinta':      '印台',
+
+  // ── IMPRESIÓN Y CÓMPUTO ─────────────────────────────────────────────
+  'tinta':                     '墨水',
+  'cartucho de tinta':         '墨盒',
+  'toner':                     '碳粉',
+  'tóner':                     '碳粉',
+  'cartucho de toner':         '硒鼓',
+  'impresora':                 '打印机',
+  'fotocopiadora':             '复印机',
+  'escaner':                   '扫描仪',
+  'escáner':                   '扫描仪',
+  'usb':                       'U盘',
+  'memoria usb':               'U盘',
+  'pila':                      '电池',
+  'pilas':                     '电池',
+  'pila aa':                   '5号电池',
+  'pila aaa':                  '7号电池',
+  'calculadora':               '计算器',
+  'mouse':                     '鼠标',
+  'teclado':                   '键盘',
+  'cable':                     '电缆',
+  'cable usb':                 'USB线',
+  'extension electrica':       '电源延长线',
+
+  // ── LIMPIEZA E HIGIENE ───────────────────────────────────────────────
+  'detergente':                '洗涤剂',
+  'jabon':                     '肥皂',
+  'jabón':                     '肥皂',
+  'jabon liquido':             '洗手液',
+  'desinfectante':             '消毒剂',
+  'lejia':                     '漂白水',
+  'lejía':                     '漂白水',
+  'cloro':                     '漂白水',
+  'alcohol':                   '酒精',
+  'alcohol en gel':            '酒精凝胶',
+  'escoba':                    '扫帚',
+  'trapeador':                 '拖把',
+  'mopa':                      '拖把',
+  'recogedor':                 '簸箕',
+  'basurero':                  '垃圾桶',
+  'tacho de basura':           '垃圾桶',
+  'bolsa de basura':           '垃圾袋',
+  'papel higienico':           '卫生纸',
+  'papel higiénico':           '卫生纸',
+  'papel toalla':              '纸巾',
+  'servilleta':                '餐巾纸',
+  'toalla de papel':           '纸巾',
+  'guante':                    '手套',
+  'guantes':                   '手套',
+  'guantes de latex':          '乳胶手套',
+  'mascarilla':                '口罩',
+  'ambientador':                '空气清新剂',
+  'desodorante ambiental':      '空气清新剂',
+  'esponja':                   '海绵',
+  'franela':                   '抹布',
+  'trapo':                     '抹布',
 
   // ── Unidades ──────────────────────────────────────────────────────────
   'unidad':                    '个',
@@ -215,24 +329,14 @@ const DICCIONARIO = {
   'genérico':                  '通用',
 }
 
-// Conectores en español que se omiten al traducir, para no dejar
-// palabras sueltas en español mezcladas con el resultado en chino.
 const CONECTORES = new Set(['de', 'del', 'la', 'el', 'los', 'las', 'en', 'con', 'para', 'por', 'y', 'a', 'al'])
 
-// Detecta si una palabra es un código/modelo técnico (contiene al menos un dígito),
-// en cuyo caso se mantiene tal cual en el resultado (ej: "15W-40", "GL-5", "8PK1340").
 const esCodigoTecnico = (palabraOriginal) => /\d/.test(palabraOriginal)
 
-// Claves del diccionario ordenadas por cantidad de palabras (de más a menos),
-// para intentar siempre la coincidencia de frase más larga primero.
 const CLAVES_ORDENADAS = Object.keys(DICCIONARIO)
   .map(clave => ({ clave, partes: clave.split(/\s+/) }))
   .sort((a, b) => b.partes.length - a.partes.length)
 
-// ── Respaldo online: MyMemory API ───────────────────────────────────
-// Se usa SOLO cuando el diccionario local no reconoce nada del texto.
-// Gratuita, sin necesidad de API key. Límite: 5,000 caracteres/día sin
-// email configurado, o 50,000/día si se define MYMEMORY_EMAIL arriba.
 async function traducirConMyMemory(texto) {
   try {
     const params = new URLSearchParams({
@@ -249,20 +353,16 @@ async function traducirConMyMemory(texto) {
     const confianza  = data?.responseData?.match
 
     if (!traduccion) return ''
-    // Si devolvió el mismo texto sin traducir, o confianza muy baja, descartar
     if (traduccion.trim().toLowerCase() === texto.trim().toLowerCase()) return ''
     if (typeof confianza === 'number' && confianza < 0.3) return ''
-    // Verificación básica de que el resultado contenga caracteres chinos
     if (!/[\u4e00-\u9fff]/.test(traduccion)) return ''
 
     return traduccion.trim()
   } catch (e) {
-    // Sin internet, API caída, o límite diario alcanzado: seguimos sin traducción online
     return ''
   }
 }
 
-// ── Función principal de traducción ─────────────────────────────────
 const CACHE = new Map()
 
 export const traducirAlChino = async (texto) => {
@@ -272,16 +372,11 @@ export const traducirAlChino = async (texto) => {
   const textoBajo = original.toLowerCase()
   if (CACHE.has(textoBajo)) return CACHE.get(textoBajo)
 
-  // 1. Búsqueda exacta de la frase completa en el diccionario local
   if (DICCIONARIO[textoBajo]) {
     CACHE.set(textoBajo, DICCIONARIO[textoBajo])
     return DICCIONARIO[textoBajo]
   }
 
-  // 2. Segmentación palabra por palabra: recorre todo el texto de
-  //    izquierda a derecha, buscando en cada posición la frase más
-  //    larga posible del diccionario, para traducir el texto completo
-  //    (no solo la primera coincidencia).
   const palabrasOriginales = original.split(/\s+/).filter(Boolean)
   const palabrasBajas = palabrasOriginales.map(p => p.toLowerCase())
 
@@ -310,13 +405,10 @@ export const traducirAlChino = async (texto) => {
     const palabraBaja = palabrasBajas[i]
 
     if (CONECTORES.has(palabraBaja)) {
-      // Conector español — se omite, no se mezcla idioma.
+      // se omite
     } else if (esCodigoTecnico(palabraOriginal)) {
-      // Código/modelo técnico — se mantiene tal cual.
       resultado.push(palabraOriginal)
     }
-    // Palabra en español sin traducción conocida: se omite por ahora,
-    // se intentará resolver todo el texto con la API en el paso 3.
 
     i += 1
   }
@@ -327,21 +419,15 @@ export const traducirAlChino = async (texto) => {
     return final
   }
 
-  // 3. El diccionario no reconoció nada — intentar con MyMemory (online)
   const resultadoAPI = await traducirConMyMemory(original)
   if (resultadoAPI) {
     CACHE.set(textoBajo, resultadoAPI)
     return resultadoAPI
   }
 
-  // 4. No se encontró ninguna traducción — devolver vacío
-  //    (el usuario puede completar manualmente).
   return ''
 }
 
-/**
- * Traduce múltiples textos en lote (para importación Excel)
- */
 export const traducirLote = async (textos, onProgreso) => {
   const resultados = []
   for (let i = 0; i < textos.length; i++) {
@@ -351,7 +437,4 @@ export const traducirLote = async (textos, onProgreso) => {
   return resultados
 }
 
-/**
- * Devuelve cuántos términos tiene el diccionario
- */
 export const totalTerminos = () => Object.keys(DICCIONARIO).length

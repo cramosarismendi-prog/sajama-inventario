@@ -296,12 +296,13 @@ export default function Usuarios() {
 
       <div className="card p-0 overflow-hidden">
         {usuarios.length === 0 ? <EmptyState mensaje="No hay usuarios registrados"/> : (
-          <table className="table-auto w-full">
-            <thead><tr>
-              {['Usuario','Rol','Módulos','Permisos','Estado','Acciones'].map(h => (
-                <th key={h} className="th">{h}</th>
-              ))}
-            </tr></thead>
+          <div className="overflow-x-auto">
+            <table className="table-auto w-full min-w-[650px]">
+              <thead><tr>
+                {['Usuario','Rol','Módulos','Permisos','Estado','Acciones'].map(h => (
+                  <th key={h} className="th">{h}</th>
+                ))}
+              </tr></thead>
             <tbody>
               {usuarios.map(u => {
                 const { modulosConAcceso, tienePersonalizados } = resumen(u)
@@ -369,6 +370,7 @@ export default function Usuarios() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

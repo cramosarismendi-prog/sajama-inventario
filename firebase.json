@@ -1,9 +1,9 @@
 {
-  "firestore": { "rules": "firestore.rules", "indexes": "firestore.indexes.json" },
-  "storage":   { "rules": "storage.rules" },
+  "firestore": { "rules": "firebase/firestore.rules", "indexes": "firebase/firestore.indexes.json" },
+  "storage":   { "rules": "firebase/storage.rules" },
   "hosting": {
-    "public": "public",
-    "ignore": ["firebase.json","**/.*","**/node_modules/**"],
+    "public": "frontend/dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [{ "source": "**", "destination": "/index.html" }]
   },
   "emulators": {

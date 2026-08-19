@@ -1,3 +1,4 @@
+import { traducirAlChino } from '../services/traduccion'
 import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { db } from '../services/firebase'
@@ -60,9 +61,9 @@ async function generarNumeroSecuencial(nombreContador, padding = 4) {
   return String(seq).padStart(padding, '0')
 }
 
-const obtenerNumeroSolicitudCompra = () => generarNumeroSecuencial('comprasSolicitud', 4)
-const obtenerNumeroSalidaInsumos   = () => generarNumeroSecuencial('comprasSalidaInsumos', 4)
-const obtenerNumeroIngresoMaterial = () => generarNumeroSecuencial('comprasIngresoMaterial', 4)
+const obtenerNumeroSolicitudCompra = async () => (await generarNumeroSecuencial('comprasSolicitud', 4)) + '-SC'
+const obtenerNumeroSalidaInsumos   = async () => (await generarNumeroSecuencial('comprasSalidaInsumos', 4)) + '-SI'
+const obtenerNumeroIngresoMaterial = async () => (await generarNumeroSecuencial('comprasIngresoMaterial', 4)) + '-IM'
 
 // ── Impresión genérica bilingüe (mismo estilo que Orden de Salida) ─────
 function imprimirFormularioGenerico(cfg) {
@@ -191,6 +192,7 @@ function FormularioGenerico({
   const [solicitante, setSolicitante]   = useState(registroExistente?.solicitante || perfil?.nombre || '')
   const [entregadoPor, setEntregadoPor] = useState(registroExistente?.entregadoPor || '')
   const [guardando, setGuardando]       = useState(false)
+  const timersRef = useRef({})
 
   const filaVacia = () => ({ descripcion:'', descripcionZh:'', modelo:'', unidad:'', cantidad:'', precio:'', observaciones:'' })
 
@@ -214,6 +216,23 @@ function FormularioGenerico({
 
   const actualizarFila = (idx, campo, valor) => {
     setFilas(prev => { const n = [...prev]; n[idx] = { ...n[idx], [campo]: valor }; return n })
+
+    // Autotraducir la descripción al chino (con debounce, igual que en Inventario/FormItem)
+    if (campo === 'descripcion') {
+      clearTimeout(timersRef.current[idx])
+      if (valor.trim().length < 3) return
+      timersRef.current[idx] = setTimeout(async () => {
+        const zh = await traducirAlChino(valor)
+        if (zh) {
+          setFilas(prev => {
+            const n = [...prev]
+            // Solo autocompleta si el campo chino sigue vacío (no pisa una edición manual)
+            if (!n[idx]?.descripcionZh) n[idx] = { ...n[idx], descripcionZh: zh }
+            return n
+          })
+        }
+      }, 900)
+    }
   }
 
   const montoTotal = filas.reduce((acc, f) => acc + ((Number(f.cantidad) || 0) * (Number(f.precio) || 0)), 0)

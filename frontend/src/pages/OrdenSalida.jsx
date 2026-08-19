@@ -297,7 +297,7 @@ td { border:1px solid #aaa; padding:2px 4px; height:15px; }
 .fc { border-right:1px solid #999; padding:5px 6px; font-size:8pt; }
 .fc:last-child { border-right:none; }
 .fc1 { flex:0 0 38%; }
-.fc2 { flex:0 0 17%; display:flex; align-items:center; justify-content:center; }
+.fc2 { flex:0 0 17%; }
 .fc3 { flex:1; }
 .sello { width:54px; height:54px; border-radius:50%; border:2px solid #3355aa; display:flex; align-items:center; justify-content:center; text-align:center; font-size:7.5pt; font-weight:700; color:#3355aa; line-height:1.3; }
 .lf { border-bottom:1px solid #aaa; margin:6px 0 2px 0; min-height:14px; padding:1px 2px; font-weight:400; }
@@ -356,7 +356,7 @@ td { border:1px solid #aaa; padding:2px 4px; height:15px; }
     <div class="lbl" style="margin-top:8px">仓库管理层批准:</div><div>Aprobado Por (GERENCIA):</div>
     <div class="lf">${firmas.aprobadoGerencia||''}</div><div style="font-size:7.5pt;color:#555">日 Fecha: ${firmas.fechaGerencia||'年___  月___'}</div>
   </div>
-  <div class="fc fc2"><div class="sello">全币财审<br/>SELLO DE<br/>ALMACEN</div></div>
+  <div class="fc fc2"></div>
   <div class="fc fc3">
     <div class="lbl">交付者:</div><div>Entregado por:</div><div class="lf">${firmas.entregadoPor||''}</div>
     <div class="lbl" style="margin-top:10px">接收人:</div><div>Recibido Por:</div><div class="lf">${firmas.recibidoPor||''}</div>
@@ -582,7 +582,7 @@ window.onload = () => {
             </div>
           </div>
           <div className="flex items-center justify-center border-r border-gray-300 p-4">
-            <div className="w-20 h-20 rounded-full border-2 border-blue-400 flex items-center justify-center text-center text-blue-600 font-bold text-xs leading-tight">全币财审<br/>SELLO DE<br/>ALMACDN</div>
+            {/* Espacio reservado para el sello físico */}
           </div>
           <div className="p-3 space-y-3">
             <div>
