@@ -218,56 +218,80 @@ function FormTransporte({ maquinasSeleccionadas, onImprimir, onCancelar }) {
   )
 }
 
-// ── Impresión del formulario bilingüe con fotos ────────────────────────
+// ── Impresión del formulario bilingüe con fotos grandes ─────────────────
 function imprimirFormularioTransporte(maquinas, datosTransporte) {
   const fechaFmt = datosTransporte.fecha ? format(new Date(datosTransporte.fecha + 'T00:00:00'), 'dd/MM/yyyy') : ''
   const montoTotal = maquinas.reduce((a, m) => a + (Number(m.precio) || 0), 0)
 
   const filasHTML = maquinas.map((m, i) => `
     <tr>
-      <td style="text-align:center;border:1px solid #aaa;padding:4px">${i + 1}</td>
-      <td style="border:1px solid #aaa;padding:4px">${m.nombreZh || ''}</td>
-      <td style="border:1px solid #aaa;padding:4px">${m.nombreEs || ''}</td>
-      <td style="border:1px solid #aaa;padding:4px">${m.modelo || ''}</td>
-      <td style="border:1px solid #aaa;padding:4px">${m.serie || ''}</td>
-      <td style="text-align:center;border:1px solid #aaa;padding:4px">${m.precio ? Number(m.precio).toLocaleString() : ''}</td>
-      <td style="text-align:center;border:1px solid #aaa;padding:4px">${m.unidad || ''}</td>
-      <td style="text-align:center;border:1px solid #aaa;padding:4px">1</td>
-      <td style="text-align:center;border:1px solid #aaa;padding:4px">${m.precio ? Number(m.precio).toLocaleString() : ''}</td>
-      <td style="border:1px solid #aaa;padding:4px">${m.observaciones || ''}</td>
-    </tr>
-    <tr>
-      <td colspan="10" style="border:1px solid #aaa;padding:6px;background:#fafafa">
-        <div style="display:flex;gap:8px;justify-content:center;">
-          ${m.fotoPlacaUrl ? `<img src="${m.fotoPlacaUrl}" style="height:90px;object-fit:cover;border:1px solid #ccc;border-radius:4px"/>` : ''}
-          ${m.fotoMaquinaUrl ? `<img src="${m.fotoMaquinaUrl}" style="height:90px;object-fit:cover;border:1px solid #ccc;border-radius:4px"/>` : ''}
-        </div>
-      </td>
+      <td style="text-align:center;border:1px solid #777;padding:5px">${i + 1}</td>
+      <td style="border:1px solid #777;padding:5px;font-weight:600">${m.nombreZh || ''}</td>
+      <td style="border:1px solid #777;padding:5px;font-weight:600">${m.nombreEs || ''}</td>
+      <td style="border:1px solid #777;padding:5px">${m.modelo || ''}</td>
+      <td style="border:1px solid #777;padding:5px;font-family:monospace;font-weight:bold">${m.serie || ''}</td>
+      <td style="text-align:right;border:1px solid #777;padding:5px">${m.precio ? Number(m.precio).toLocaleString() : ''}</td>
+      <td style="text-align:center;border:1px solid #777;padding:5px">${m.unidad || 'Uni'}</td>
+      <td style="text-align:center;border:1px solid #777;padding:5px;font-weight:bold">1</td>
+      <td style="text-align:right;border:1px solid #777;padding:5px;font-weight:bold">${m.precio ? Number(m.precio).toLocaleString() : ''}</td>
+      <td style="border:1px solid #777;padding:5px;font-size:7.5pt">${m.observaciones || ''}</td>
     </tr>`).join('')
 
+  const fotosHTML = maquinas.map(m => {
+    if (!m.fotoMaquinaUrl && !m.fotoPlacaUrl) return ''
+    return `
+      <div class="seccion-fotos">
+        ${m.fotoMaquinaUrl ? `
+          <div class="foto-card">
+            <div class="foto-titulo">设备照片 / FOTO DE LA MÁQUINA</div>
+            <img src="${m.fotoMaquinaUrl}" class="foto-img" alt="Foto Maquina"/>
+          </div>
+        ` : ''}
+        ${m.fotoPlacaUrl ? `
+          <div class="foto-card">
+            <div class="foto-titulo">铭牌序列号照片 / FOTO DE PLACA Y SERIE</div>
+            <img src="${m.fotoPlacaUrl}" class="foto-img" alt="Foto Placa y Serie"/>
+          </div>
+        ` : ''}
+      </div>
+    `
+  }).join('')
+
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-<title>Formulario de Transporte</title>
+<title>Formulario de Transporte - SAJAMA</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:9pt; color:#111; padding:10mm; }
-.header { display:flex; align-items:center; gap:10px; margin-bottom:6px; border-bottom:2px solid #1a3c6e; padding-bottom:6px; }
-.logo { width:55px; height:50px; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; font-size:7pt; text-align:center; background:#e8eef7; flex-shrink:0; }
+body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:8.5pt; color:#111; padding:6mm 8mm; }
+.header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; border-bottom:2px solid #1a3c6e; padding-bottom:6px; }
+.logo { font-size:16pt; font-weight:900; color:#1a3c6e; letter-spacing:0.5px; }
 .htxt { flex:1; text-align:center; }
-.titzh { font-size:14pt; font-weight:700; }
-.tites { font-size:10pt; color:#1a3c6e; font-weight:600; }
-table { width:100%; border-collapse:collapse; margin:8px 0; font-size:8.5pt; }
-th { background:#d3ddf0; border:1px solid #888; padding:4px; text-align:center; font-weight:700; white-space:pre-line; line-height:1.4; }
-td { border:1px solid #aaa; padding:4px; }
-.total-row td { font-weight:700; background:#f2f2f2; }
-.datos { border:1px solid #999; margin-top:8px; }
-.fila-datos { display:flex; border-bottom:1px solid #999; }
+.titzh { font-size:13pt; font-weight:700; line-height:1.2; }
+.tites { font-size:9pt; color:#1a3c6e; font-weight:600; margin-top:2px; }
+
+table { width:100%; border-collapse:collapse; margin-bottom:6px; font-size:8pt; }
+th { background:#e2e8f0; border:1px solid #666; padding:4px 3px; text-align:center; font-weight:700; line-height:1.3; font-size:7.5pt; }
+td { border:1px solid #777; padding:4px 5px; }
+.total-row td { font-weight:700; background:#f1f5f9; }
+
+.seccion-fotos { display:flex; gap:12px; justify-content:center; align-items:stretch; margin:8px 0; border:1.5px solid #666; padding:8px; background:#fff; border-radius:4px; page-break-inside:avoid; }
+.foto-card { flex:1; text-align:center; display:flex; flex-direction:column; align-items:center; }
+.foto-titulo { font-size:8pt; font-weight:bold; color:#1a3c6e; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px; }
+.foto-img { width:100%; height:250px; object-fit:contain; border:1px solid #888; background:#fafafa; border-radius:3px; }
+
+.datos { border:1.5px solid #666; margin-top:6px; font-size:8pt; }
+.fila-datos { display:flex; border-bottom:1px solid #666; }
 .fila-datos:last-child { border-bottom:none; }
-.celda-dato { flex:1; padding:6px 8px; border-right:1px solid #999; font-size:8.5pt; }
+.celda-dato { flex:1; padding:5px 8px; border-right:1px solid #666; min-height:36px; }
 .celda-dato:last-child { border-right:none; }
-.celda-dato b { display:block; font-size:7.5pt; color:#555; margin-bottom:2px; }
-@page { size:A4 landscape; margin:8mm; }
-@media print { body{padding:0} }
+.celda-dato b { display:block; font-size:7.5pt; color:#333; margin-bottom:2px; font-weight:700; }
+.celda-valor { font-size:8.5pt; color:#000; }
+
+@page { size:A4 portrait; margin:8mm 8mm; }
+@media print {
+  body { padding:0; }
+  .seccion-fotos { page-break-inside:avoid; }
+}
 </style></head><body>
 <div class="header">
   <div class="logo">Sajama.SRL</div>
@@ -276,55 +300,76 @@ td { border:1px solid #aaa; padding:4px; }
     <div class="tites">Formulario de Confirmación de Transporte de Materiales y Equipos de SAJAMA</div>
   </div>
 </div>
+
 <table>
   <thead><tr>
     <th style="width:4%">序号<br/>No.</th>
     <th style="width:14%">名称<br/>Nombre en Chino</th>
-    <th style="width:14%">西语名称<br/>Nombre en Español</th>
+    <th style="width:15%">西语名称<br/>Nombre en Español</th>
     <th style="width:10%">型号<br/>Modelo</th>
-    <th style="width:14%">序列号<br/>Series</th>
+    <th style="width:15%">序列号<br/>Series</th>
     <th style="width:9%">单价(Bs)<br/>Precio Unitario</th>
-    <th style="width:6%">单位<br/>Unidad</th>
-    <th style="width:6%">数量<br/>Cantidad</th>
+    <th style="width:5%">单位<br/>Unidad</th>
+    <th style="width:5%">数量<br/>Cantidad</th>
     <th style="width:9%">总价(Bs)<br/>Monto total</th>
     <th style="width:14%">备注<br/>Observaciones</th>
   </tr></thead>
   <tbody>
     ${filasHTML}
     <tr class="total-row">
-      <td colspan="8" style="text-align:right;padding-right:8px">总价值 (Bs) Monto total:</td>
-      <td colspan="2" style="text-align:center">${montoTotal.toLocaleString()}</td>
+      <td colspan="8" style="text-align:right;padding-right:8px;font-size:8.5pt">总价值 (Bs) Monto total:</td>
+      <td colspan="2" style="text-align:right;font-size:9pt;font-weight:bold;padding-right:8px">${montoTotal.toLocaleString()} Bs</td>
     </tr>
   </tbody>
 </table>
+
+${fotosHTML}
+
 <div class="datos">
   <div class="fila-datos">
-    <div class="celda-dato"><b>运输车辆车牌号 Placa de Camión</b>${datosTransporte.placaCamion || ''}</div>
-    <div class="celda-dato"><b>运输司机姓名 Nombre y firma (Conductor)</b>${datosTransporte.conductorNombre || ''}</div>
-    <div class="celda-dato"><b>司机电话 Teléfono</b>${datosTransporte.conductorTelefono || ''}</div>
-    <div class="celda-dato"><b>日期 Fecha</b>${fechaFmt}</div>
+    <div class="celda-dato"><b>运输车辆车牌号 Placa de Camión</b><span class="celda-valor">${datosTransporte.placaCamion || ''}</span></div>
+    <div class="celda-dato"><b>运输司机姓名 Nombre y firma (Conductor)</b><span class="celda-valor">${datosTransporte.conductorNombre || ''}</span></div>
+    <div class="celda-dato"><b>司机电话 Teléfono</b><span class="celda-valor">${datosTransporte.conductorTelefono || ''}</span></div>
+    <div class="celda-dato"><b>日期 Fecha</b><span class="celda-valor">${fechaFmt}</span></div>
   </div>
   <div class="fila-datos">
-    <div class="celda-dato"><b>SAJAMA 公司发货人/签字 Nombre y teléfono (Envía)</b>${datosTransporte.enviaNombre || ''} ${datosTransporte.enviaTelefono ? '· ' + datosTransporte.enviaTelefono : ''}</div>
-    <div class="celda-dato" style="flex:2"><b>目的地 Destino</b>${datosTransporte.destino || ''}</div>
+    <div class="celda-dato"><b>SAJAMA 公司发货人/签字 Nombre y teléfono (Envía)</b><span class="celda-valor">${datosTransporte.enviaNombre || ''} ${datosTransporte.enviaTelefono ? '· ' + datosTransporte.enviaTelefono : ''}</span></div>
+    <div class="celda-dato" style="flex:2"><b>目的地 Destino</b><span class="celda-valor">${datosTransporte.destino || ''}</span></div>
   </div>
   <div class="fila-datos">
-    <div class="celda-dato" style="flex:2"><b>送货描述 Descripción de cargos</b>${datosTransporte.descripcionCargos || ''}</div>
-    <div class="celda-dato"><b>买货甲方签字 Firma de Cliente/Recibido</b>${datosTransporte.clienteFirma || ''}</div>
+    <div class="celda-dato" style="flex:2"><b>送货描述 Descripción de cargos</b><span class="celda-valor">${datosTransporte.descripcionCargos || ''}</span></div>
+    <div class="celda-dato"><b>买货甲方签字 Firma de Cliente/Recibido</b><span class="celda-valor">${datosTransporte.clienteFirma || ''}</span></div>
   </div>
 </div>
+
 <script>
 window.onload = () => {
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => setTimeout(() => window.print(), 400));
-  } else {
-    setTimeout(() => window.print(), 900);
+  const images = document.querySelectorAll('img');
+  let loaded = 0;
+  if (images.length === 0) {
+    setTimeout(() => window.print(), 300);
+    return;
   }
+  const checkDone = () => {
+    loaded++;
+    if (loaded >= images.length) {
+      setTimeout(() => window.print(), 400);
+    }
+  };
+  images.forEach(img => {
+    if (img.complete) {
+      checkDone();
+    } else {
+      img.onload = checkDone;
+      img.onerror = checkDone;
+    }
+  });
+  setTimeout(() => window.print(), 2000);
 };
 <\/script>
 </body></html>`
 
-  const w = window.open('', '_blank', 'width=1000,height=750')
+  const w = window.open('', '_blank', 'width=950,height=800')
   w.document.write(html)
   w.document.close()
 }
