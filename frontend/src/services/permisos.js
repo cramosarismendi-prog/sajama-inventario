@@ -44,7 +44,7 @@ export const PERMISOS_ROL = {
     auditoria:    { ver:true, crear:false, editar:false, eliminar:false },
     maquinaria:   { ver:true, crear:true,  editar:true,  eliminar:true  },
     equipos:      { ver:true, crear:true,  editar:true,  eliminar:true  },
-    kardex:       { ver:true, crear:true,  editar:true,  eliminar:true  },
+    kardex:       { ver:false, crear:false, editar:false, eliminar:false },
   },
   gerencia: {
     inventario:   { ver:true,  crear:false, editar:false, eliminar:false },
@@ -60,7 +60,7 @@ export const PERMISOS_ROL = {
     auditoria:    { ver:true,  crear:false, editar:false, eliminar:false },
     maquinaria:   { ver:true, crear:true,  editar:true,  eliminar:true  },
     equipos:      { ver:true, crear:true,  editar:true,  eliminar:true  },
-    kardex:       { ver:true, crear:true,  editar:false, eliminar:false },
+    kardex:       { ver:false, crear:false, editar:false, eliminar:false },
   },
   almacenero: {
     inventario:   { ver:true,  crear:true,  editar:true,  eliminar:false },
@@ -76,7 +76,7 @@ export const PERMISOS_ROL = {
     auditoria:    { ver:false, crear:false, editar:false, eliminar:false },
     maquinaria:   { ver:true, crear:true,  editar:true,  eliminar:true  },
     equipos:      { ver:true, crear:true,  editar:true,  eliminar:false },
-    kardex:       { ver:true, crear:true,  editar:false, eliminar:false },
+    kardex:       { ver:false, crear:false, editar:false, eliminar:false },
   },
   ventas: {
     inventario:   { ver:true,  crear:false, editar:false, eliminar:false },
@@ -120,7 +120,7 @@ export const PERMISOS_ROL = {
     reportes:     { ver:true,  crear:false, editar:false, eliminar:false },
     usuarios:     { ver:false, crear:false, editar:false, eliminar:false },
     auditoria:    { ver:false, crear:false, editar:false, eliminar:false },
-    kardex:       { ver:true,  crear:false, editar:false, eliminar:false },
+    kardex:       { ver:false, crear:false, editar:false, eliminar:false },
   },
   contabilidad: {
     inventario:   { ver:true,  crear:false, editar:false, eliminar:false },
@@ -134,7 +134,7 @@ export const PERMISOS_ROL = {
     reportes:     { ver:true,  crear:false, editar:false, eliminar:false },
     usuarios:     { ver:false, crear:false, editar:false, eliminar:false },
     auditoria:    { ver:false, crear:false, editar:false, eliminar:false },
-    kardex:       { ver:true,  crear:true,  editar:true,  eliminar:false },
+    kardex:       { ver:false, crear:false, editar:false, eliminar:false },
   },
   aduanas: {
     inventario:   { ver:false, crear:false, editar:false, eliminar:false },
@@ -170,6 +170,16 @@ export const getPermisosEfectivos = (perfil) => {
       eliminar: ajustes[modulo]?.eliminar ?? base[modulo]?.eliminar ?? false,
     }
   }
+
+  // Kardex Contable restringido exclusivamente al usuario Administrador admin@sajama.com
+  const esAdminSajama = perfil?.email?.toLowerCase() === 'admin@sajama.com' && perfil?.rol === 'administrador'
+  resultado['kardex'] = {
+    ver: esAdminSajama,
+    crear: esAdminSajama,
+    editar: esAdminSajama,
+    eliminar: esAdminSajama,
+  }
+
   return resultado
 }
 
