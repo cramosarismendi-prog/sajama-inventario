@@ -337,6 +337,16 @@ export default function Abastecimiento() {
 
   // Carga en tiempo real de Saldos, Entradas y Salidas
   useEffect(() => {
+    let listoSaldos = false
+    let listoEntradas = false
+    let listoSalidas = false
+
+    const verificarListo = () => {
+      if (listoSaldos || listoEntradas || listoSalidas) {
+        setLoading(false)
+      }
+    }
+
     const unsubSaldos = onSnapshot(
       doc(db, 'abastecimiento_saldos', 'combustibles'),
       snap => {
@@ -345,26 +355,56 @@ export default function Abastecimiento() {
         } else {
           setSaldos({ gasolina: 0, diesel: 0 })
         }
+        listoSaldos = true
+        verificarListo()
       },
-      err => console.error('Error cargando saldos:', err)
+      err => {
+        console.error('Error cargando saldos:', err)
+        listoSaldos = true
+        verificarListo()
+      }
     )
 
     const unsubEntradas = onSnapshot(
-      query(collection(db, 'abastecimiento_entradas'), orderBy('creadoEn', 'desc')),
+      collection(db, 'abastecimiento_entradas'),
       snap => {
-        setEntradas(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-        setLoading(false)
+        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        list.sort((a, b) => {
+          const tA = a.creadoEn?.toDate ? a.creadoEn.toDate().getTime() : (a.fecha ? new Date(a.fecha).getTime() : 0)
+          const tB = b.creadoEn?.toDate ? b.creadoEn.toDate().getTime() : (b.fecha ? new Date(b.fecha).getTime() : 0)
+          return tB - tA
+        })
+        setEntradas(list)
+        listoEntradas = true
+        verificarListo()
       },
-      err => console.error('Error cargando entradas:', err)
+      err => {
+        console.error('Error cargando entradas:', err)
+        toast.error('Error cargando entradas: ' + err.message)
+        listoEntradas = true
+        verificarListo()
+      }
     )
 
     const unsubSalidas = onSnapshot(
-      query(collection(db, 'abastecimiento_salidas'), orderBy('creadoEn', 'desc')),
+      collection(db, 'abastecimiento_salidas'),
       snap => {
-        setSalidas(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-        setLoading(false)
+        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        list.sort((a, b) => {
+          const tA = a.creadoEn?.toDate ? a.creadoEn.toDate().getTime() : (a.fecha ? new Date(a.fecha).getTime() : 0)
+          const tB = b.creadoEn?.toDate ? b.creadoEn.toDate().getTime() : (b.fecha ? new Date(b.fecha).getTime() : 0)
+          return tB - tA
+        })
+        setSalidas(list)
+        listoSalidas = true
+        verificarListo()
       },
-      err => console.error('Error cargando salidas:', err)
+      err => {
+        console.error('Error cargando salidas:', err)
+        toast.error('Error cargando salidas: ' + err.message)
+        listoSalidas = true
+        verificarListo()
+      }
     )
 
     return () => {

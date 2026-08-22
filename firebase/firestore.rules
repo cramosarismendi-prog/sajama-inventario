@@ -78,5 +78,14 @@ service cloud.firestore {
     match /compras_ingresos_material/{id} {
       allow read, write: if isAuth();
     }
+    match /abastecimiento_saldos/{id} {
+      allow read, write: if isAuth();
+    }
+    match /abastecimiento_entradas/{id} {
+      allow read, write: if isAuth();
+    }
+    match /abastecimiento_salidas/{id} {
+      allow read, write: if isAuth();
+    }
   }
 }
