@@ -13,7 +13,7 @@ import { Modal } from '../components/ui/Modal'
 import {
   HardHat, Plus, Search, FileText, Trash2, Edit3,
   ExternalLink, Paperclip, CheckCircle2, Tag, AlertCircle, Languages,
-  Printer, Image as ImageIcon
+  Printer, Image as ImageIcon, CheckSquare, Square
 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -146,6 +146,7 @@ export default function Equipos() {
   const [loading, setLoading] = useState(true)
   const [busqueda, setBusqueda] = useState('')
   const [tab, setTab] = useState('a_la_venta') // 'a_la_venta', 'vendidos_despachados', 'todos'
+  const [seleccionadas, setSeleccionadas] = useState(new Set())
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editando, setEditando] = useState(null)
@@ -153,6 +154,14 @@ export default function Equipos() {
   const [guardando, setGuardando] = useState(false)
   const [traduciendo, setTraduciendo] = useState(false)
   const timerRef = useRef(null)
+
+  const toggleSeleccion = (id) => {
+    setSeleccionadas(prev => {
+      const n = new Set(prev)
+      n.has(id) ? n.delete(id) : n.add(id)
+      return n
+    })
+  }
 
   const handleNombreEsChange = (e) => {
     const val = e.target.value
@@ -335,6 +344,7 @@ export default function Equipos() {
       })
       toast.success('Equipo eliminado')
       setDelEquipo(null)
+      setSeleccionadas(prev => { const n = new Set(prev); n.delete(delEquipo.id); return n })
     } catch (err) {
       toast.error('Error al eliminar: ' + err.message)
     }
@@ -359,6 +369,10 @@ export default function Equipos() {
     )
   })
 
+  const equiposAImprimir = seleccionadas.size > 0
+    ? equiposFiltrados.filter(eq => seleccionadas.has(eq.id))
+    : equiposFiltrados
+
   if (loading) return <PageLoader />
 
   return (
@@ -370,13 +384,13 @@ export default function Equipos() {
             <HardHat size={26} className="text-primary"/> Módulo de Equipos
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Gestión de equipos a la venta, entregados/vendidos y control de pólizas aduaneras
+            {equipos.length} equipo(s) registrados — {seleccionadas.size} seleccionado(s)
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={() => imprimirPlanillaEquipos(equiposFiltrados)} className="btn-secondary flex items-center gap-1.5">
-            <Printer size={16}/> Imprimir Planilla
+          <button onClick={() => imprimirPlanillaEquipos(equiposAImprimir)} className="btn-secondary flex items-center gap-1.5">
+            <Printer size={16}/> Imprimir Planilla {seleccionadas.size > 0 ? `(${seleccionadas.size})` : ''}
           </button>
           {canEdit && (
             <button onClick={() => { resetForm(); setModalOpen(true) }} className="btn-primary flex items-center gap-2">
@@ -439,6 +453,7 @@ export default function Equipos() {
           <table className="w-full text-left text-sm min-w-[700px]">
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
               <tr>
+                <th className="py-3 px-3 w-10"></th>
                 <th className="py-3 px-4 w-14">Foto</th>
                 <th className="py-3 px-4">Equipo / Nombre</th>
                 <th className="py-3 px-4">Modelo / Serie</th>
@@ -452,7 +467,7 @@ export default function Equipos() {
             <tbody className="divide-y divide-gray-100">
               {equiposFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-10 text-gray-400">
+                  <td colSpan={9} className="text-center py-10 text-gray-400">
                     No se encontraron equipos en esta categoría
                   </td>
                 </tr>
@@ -461,7 +476,13 @@ export default function Equipos() {
                   const estObj = ESTADOS.find(e => e.id === eq.estado) || ESTADOS[0]
                   const fechaFmt = eq.fecha ? format(new Date(eq.fecha + 'T00:00:00'), 'dd/MM/yyyy') : (eq.creadoEn?.toDate ? format(eq.creadoEn.toDate(), 'dd/MM/yyyy') : '—')
                   return (
-                    <tr key={eq.id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={eq.id} className={`hover:bg-gray-50/50 transition-colors ${seleccionadas.has(eq.id) ? 'bg-blue-50/60' : ''}`}>
+                      <td className="py-3 px-3">
+                        <button onClick={() => toggleSeleccion(eq.id)} className="text-primary hover:scale-105 transition-transform">
+                          {seleccionadas.has(eq.id) ? <CheckSquare size={18}/> : <Square size={18} className="text-gray-300"/>}
+                        </button>
+                      </td>
+
                       <td className="py-3 px-4">
                         {eq.fotoEquipoUrl ? (
                           <img src={eq.fotoEquipoUrl} alt="foto" className="w-10 h-10 rounded-lg object-cover border border-gray-200"/>
