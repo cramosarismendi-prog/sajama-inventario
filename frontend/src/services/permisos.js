@@ -18,6 +18,7 @@ export const MODULOS = [
   { key: 'auditoria',    label: 'Auditoría',         icon: 'ShieldAlert'    },
   { key: 'maquinaria',   label: 'Maquinaria',        icon: 'Truck'          },
   { key: 'equipos',      label: 'Equipos',           icon: 'HardHat'        },
+  { key: 'abastecimiento', label: 'Abastecimiento y Despacho', icon: 'Fuel'  },
   { key: 'kardex',       label: 'Kardex Contable',   icon: 'Calculator'     },
 ]
 
@@ -44,6 +45,7 @@ export const PERMISOS_ROL = {
     auditoria:    { ver:true, crear:false, editar:false, eliminar:false },
     maquinaria:   { ver:true, crear:true,  editar:true,  eliminar:true  },
     equipos:      { ver:true, crear:true,  editar:true,  eliminar:true  },
+    abastecimiento: { ver:true, crear:true, editar:true, eliminar:true },
     kardex:       { ver:false, crear:false, editar:false, eliminar:false },
   },
   gerencia: {
@@ -60,6 +62,7 @@ export const PERMISOS_ROL = {
     auditoria:    { ver:true,  crear:false, editar:false, eliminar:false },
     maquinaria:   { ver:true, crear:true,  editar:true,  eliminar:true  },
     equipos:      { ver:true, crear:true,  editar:true,  eliminar:true  },
+    abastecimiento: { ver:true, crear:true, editar:true, eliminar:false },
     kardex:       { ver:false, crear:false, editar:false, eliminar:false },
   },
   almacenero: {
@@ -76,6 +79,7 @@ export const PERMISOS_ROL = {
     auditoria:    { ver:false, crear:false, editar:false, eliminar:false },
     maquinaria:   { ver:true, crear:true,  editar:true,  eliminar:true  },
     equipos:      { ver:true, crear:true,  editar:true,  eliminar:false },
+    abastecimiento: { ver:true, crear:true, editar:true, eliminar:false },
     kardex:       { ver:false, crear:false, editar:false, eliminar:false },
   },
   ventas: {
@@ -91,6 +95,7 @@ export const PERMISOS_ROL = {
     usuarios:     { ver:false, crear:false, editar:false, eliminar:false },
     auditoria:    { ver:false, crear:false, editar:false, eliminar:false },
     equipos:      { ver:true,  crear:false, editar:false, eliminar:false },
+    abastecimiento: { ver:false, crear:false, editar:false, eliminar:false },
     kardex:       { ver:false, crear:false, editar:false, eliminar:false },
   },
   taller: {
@@ -106,6 +111,7 @@ export const PERMISOS_ROL = {
     usuarios:     { ver:false, crear:false, editar:false, eliminar:false },
     auditoria:    { ver:false, crear:false, editar:false, eliminar:false },
     equipos:      { ver:true,  crear:false, editar:false, eliminar:false },
+    abastecimiento: { ver:true, crear:true, editar:false, eliminar:false },
     kardex:       { ver:false, crear:false, editar:false, eliminar:false },
   },
   personalChino: {
@@ -120,6 +126,7 @@ export const PERMISOS_ROL = {
     reportes:     { ver:true,  crear:false, editar:false, eliminar:false },
     usuarios:     { ver:false, crear:false, editar:false, eliminar:false },
     auditoria:    { ver:false, crear:false, editar:false, eliminar:false },
+    abastecimiento: { ver:true, crear:false, editar:false, eliminar:false },
     kardex:       { ver:false, crear:false, editar:false, eliminar:false },
   },
   contabilidad: {
@@ -134,6 +141,7 @@ export const PERMISOS_ROL = {
     reportes:     { ver:true,  crear:false, editar:false, eliminar:false },
     usuarios:     { ver:false, crear:false, editar:false, eliminar:false },
     auditoria:    { ver:false, crear:false, editar:false, eliminar:false },
+    abastecimiento: { ver:true, crear:false, editar:false, eliminar:false },
     kardex:       { ver:false, crear:false, editar:false, eliminar:false },
   },
   aduanas: {
@@ -148,6 +156,7 @@ export const PERMISOS_ROL = {
     reportes:     { ver:false, crear:false, editar:false, eliminar:false },
     usuarios:     { ver:false, crear:false, editar:false, eliminar:false },
     auditoria:    { ver:false, crear:false, editar:false, eliminar:false },
+    abastecimiento: { ver:false, crear:false, editar:false, eliminar:false },
     kardex:       { ver:false, crear:false, editar:false, eliminar:false },
   },
 }

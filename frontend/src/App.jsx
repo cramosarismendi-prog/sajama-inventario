@@ -21,6 +21,7 @@ import Compras      from './pages/Compras'
 import Maquinaria from './pages/Maquinaria'
 import Equipos    from './pages/Equipos'
 import KardexContable from './pages/KardexContable'
+import Abastecimiento from './pages/Abastecimiento'
 
 function ProtectedRoute({ children, modulo }) {
   const { user, loading, tienePermiso } = useAuth()
@@ -53,6 +54,7 @@ function AppRoutes() {
         <Route path="orden-entrada"   element={<ProtectedRoute modulo="ordenEntrada">  <OrdenEntrada  /></ProtectedRoute>} />
         <Route path="maquinaria"      element={<ProtectedRoute modulo="maquinaria">    <Maquinaria    /></ProtectedRoute>} />
         <Route path="equipos"         element={<ProtectedRoute modulo="equipos">       <Equipos       /></ProtectedRoute>} />
+        <Route path="abastecimiento"  element={<ProtectedRoute modulo="abastecimiento"><Abastecimiento /></ProtectedRoute>} />
         <Route path="aduana"          element={<ProtectedRoute modulo="aduana">        <Aduana        /></ProtectedRoute>} />
         <Route path="lista"           element={<ProtectedRoute modulo="lista">         <Lista         /></ProtectedRoute>} />
         <Route path="reportes"        element={<ProtectedRoute modulo="reportes">      <Reportes      /></ProtectedRoute>} />

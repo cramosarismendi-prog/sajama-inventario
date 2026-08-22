@@ -5,7 +5,7 @@ import {
   Package, Search, FileText, FilePlus, List,
   BarChart2, Users, LogOut, Globe, ChevronLeft,
   ChevronRight, ShieldAlert, FileSpreadsheet, ShoppingCart, FileArchive, X, KeyRound,
-  Truck, HardHat, Calculator
+  Truck, HardHat, Calculator, Fuel
 } from 'lucide-react'
 import i18n from '../../i18n'
 import { ChangePasswordModal } from '../ui/ChangePasswordModal'
@@ -21,6 +21,7 @@ const MENU = [
   { key: 'aduana',       path: '/aduana',         icon: FileArchive,     modulo: 'aduana'       },
   { key: 'maquinaria',   path: '/maquinaria',     icon: Truck,           modulo: 'maquinaria'  },
   { key: 'equipos',      path: '/equipos',        icon: HardHat,         modulo: 'equipos'     },
+  { key: 'abastecimiento', path: '/abastecimiento', icon: Fuel,         modulo: 'abastecimiento' },
   { key: 'lista',        path: '/lista',          icon: List,            modulo: 'lista'        },
   { key: 'reportes',     path: '/reportes',       icon: BarChart2,       modulo: 'reportes'     },
   { key: 'usuarios',     path: '/usuarios',       icon: Users,           modulo: 'usuarios'     },
@@ -31,13 +32,13 @@ const LABELS = {
   es: {
     inventario: 'Inventario', kardex: 'Kardex Contable', compras: 'Compras', importar: 'Importar Excel',
     consultas: 'Consultas', ordenSalida: 'Orden de Salida', ordenEntrada: 'Orden de Entrada',
-    aduana: 'Aduana', maquinaria: 'Maquinaria', equipos: 'Equipos',
+    aduana: 'Aduana', maquinaria: 'Maquinaria', equipos: 'Equipos', abastecimiento: 'Abastecimiento y Despacho',
     lista: 'Lista Maestra', reportes: 'Reportes', usuarios: 'Usuarios', auditoria: 'Auditoría',
   },
   zh: {
     inventario: '库存目录', kardex: '财务卡片账', compras: '采购管理', importar: '导入Excel',
     consultas: '查询', ordenSalida: '出库单', ordenEntrada: '入库单',
-    aduana: '海关', maquinaria: '机械设备', equipos: '设备',
+    aduana: '海关', maquinaria: '机械设备', equipos: '设备', abastecimiento: '燃油供应与派送',
     lista: '主列表', reportes: '报告', usuarios: '用户管理', auditoria: '审计日志',
   }
 }
