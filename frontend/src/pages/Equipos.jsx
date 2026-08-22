@@ -12,8 +12,10 @@ import { PageLoader } from '../components/ui/Spinner'
 import { Modal } from '../components/ui/Modal'
 import {
   HardHat, Plus, Search, FileText, Trash2, Edit3,
-  ExternalLink, Paperclip, CheckCircle2, Tag, AlertCircle, Languages
+  ExternalLink, Paperclip, CheckCircle2, Tag, AlertCircle, Languages,
+  Printer, Image as ImageIcon
 } from 'lucide-react'
+import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
 const ESTADOS = [
@@ -23,6 +25,120 @@ const ESTADOS = [
   { id: 'Entregado',   label: 'Entregado',   color: 'bg-blue-100 text-blue-800 border-blue-300' },
   { id: 'Existente',   label: 'Existente',   color: 'bg-slate-100 text-slate-800 border-slate-300' }
 ]
+
+// ── Selector de foto individual para Equipos ─────────────────────────
+function CampoFoto({ label, urlActual, archivoSeleccionado, onSeleccionar }) {
+  const inputId = 'foto-eq-' + label.replace(/\s+/g, '-')
+  const preview = archivoSeleccionado ? URL.createObjectURL(archivoSeleccionado) : urlActual
+  return (
+    <div>
+      <label className="block text-xs font-medium text-gray-700 mb-1">{label}</label>
+      <div
+        onClick={() => document.getElementById(inputId).click()}
+        className="w-full h-28 rounded-xl border-2 border-dashed border-gray-300 hover:border-primary cursor-pointer flex items-center justify-center overflow-hidden bg-gray-50 transition-colors relative">
+        {preview
+          ? <img src={preview} alt={label} className="w-full h-full object-cover"/>
+          : <div className="text-center text-gray-400">
+              <ImageIcon size={20} className="mx-auto mb-1"/>
+              <p className="text-[11px]">Clic para subir foto</p>
+            </div>
+        }
+      </div>
+      <input id={inputId} type="file" accept="image/*" className="hidden"
+        onChange={e => { if (e.target.files[0]) onSeleccionar(e.target.files[0]) }} />
+    </div>
+  )
+}
+
+// ── Impresión de Planilla General de Equipos (A4 Horizontal por defecto) ──
+function imprimirPlanillaEquipos(equipos) {
+  const montoTotal = equipos.reduce((a, eq) => a + (Number(eq.precio) || 0), 0)
+  const fechaHoy = format(new Date(), 'dd/MM/yyyy')
+
+  const filasHTML = equipos.map((eq, i) => {
+    const fechaFmt = eq.fecha ? format(new Date(eq.fecha + 'T00:00:00'), 'dd/MM/yyyy') : (eq.creadoEn?.toDate ? format(eq.creadoEn.toDate(), 'dd/MM/yyyy') : '—')
+    return `
+      <tr>
+        <td style="text-align:center;border:1px solid #777;padding:5px">${i + 1}</td>
+        <td style="border:1px solid #777;padding:5px">
+          <div style="font-weight:bold;color:#111">${eq.nombreEs || ''}</div>
+          ${eq.nombreZh ? `<div style="font-size:7.5pt;color:#555">${eq.nombreZh}</div>` : ''}
+        </td>
+        <td style="border:1px solid #777;padding:5px">
+          <div>Mod: <b>${eq.modelo || '—'}</b></div>
+          <div style="font-size:7.5pt;color:#555">Serie: <b>${eq.serie || '—'}</b></div>
+        </td>
+        <td style="text-align:center;border:1px solid #777;padding:5px">
+          <span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:7.5pt;font-weight:bold;background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd">${eq.estado || 'A la venta'}</span>
+        </td>
+        <td style="text-align:right;border:1px solid #777;padding:5px;font-weight:bold">${eq.precio ? '$' + Number(eq.precio).toLocaleString() + ' USD' : '—'}</td>
+        <td style="border:1px solid #777;padding:5px;font-size:7.5pt">
+          ${eq.polizaUrl ? '📄 Póliza adjunta' : 'Sin póliza'}
+          ${eq.numPoliza ? `<br/><b>N°: ${eq.numPoliza}</b>` : ''}
+        </td>
+        <td style="text-align:center;border:1px solid #777;padding:5px">${fechaFmt}</td>
+      </tr>
+    `
+  }).join('')
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>Planilla de Equipos - SAJAMA</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:8.5pt; color:#111; padding:6mm 8mm; }
+.header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; border-bottom:2px solid #1a3c6e; padding-bottom:6px; }
+.logo { font-size:16pt; font-weight:900; color:#1a3c6e; }
+.htxt { flex:1; text-align:center; }
+.titzh { font-size:14pt; font-weight:700; }
+.tites { font-size:10pt; color:#1a3c6e; font-weight:600; margin-top:2px; }
+
+table { width:100%; border-collapse:collapse; margin-top:8px; font-size:8pt; }
+th { background:#e2e8f0; border:1px solid #555; padding:5px 4px; text-align:center; font-weight:700; line-height:1.2; font-size:8pt; }
+td { border:1px solid #777; padding:4px 6px; }
+.total-row td { font-weight:700; background:#f1f5f9; }
+
+@page { size:A4 landscape; margin:8mm 8mm; }
+@media print { body { padding:0; } }
+</style></head><body>
+<div class="header">
+  <div class="logo">Sajama.SRL</div>
+  <div class="htxt">
+    <div class="titzh">SAJAMA 公司设备清单</div>
+    <div class="tites">Planilla de Control de Equipos - SAJAMA</div>
+  </div>
+  <div style="font-size:8pt;text-align:right;color:#555">Fecha de impresión:<br/><b>${fechaHoy}</b></div>
+</div>
+
+<table>
+  <thead><tr>
+    <th style="width:4%">No.</th>
+    <th style="width:24%">Equipo / Nombre</th>
+    <th style="width:18%">Modelo / Serie</th>
+    <th style="width:12%">Estado</th>
+    <th style="width:14%">Precio</th>
+    <th style="width:18%">Póliza PDF</th>
+    <th style="width:10%">Fecha</th>
+  </tr></thead>
+  <tbody>
+    ${filasHTML}
+    <tr class="total-row">
+      <td colspan="4" style="text-align:right;padding-right:8px;font-size:8.5pt">Total acumulado (${equipos.length} ítems):</td>
+      <td style="text-align:right;font-size:9pt;font-weight:bold;padding-right:6px">$${montoTotal.toLocaleString()} USD</td>
+      <td colspan="2"></td>
+    </tr>
+  </tbody>
+</table>
+
+<script>
+window.onload = () => { setTimeout(() => window.print(), 300); };
+<\/script>
+</body></html>`
+
+  const w = window.open('', '_blank', 'width=1100,height=800')
+  w.document.write(html)
+  w.document.close()
+}
 
 export default function Equipos() {
   const { perfil } = useAuth()
@@ -65,8 +181,11 @@ export default function Equipos() {
   const [form, setForm] = useState({
     nombreEs: '', nombreZh: '', modelo: '', serie: '',
     categoria: 'Equipos', precio: '', estado: 'A la venta',
+    fecha: format(new Date(), 'yyyy-MM-dd'),
     numPoliza: '', observaciones: ''
   })
+  const [fotoEquipo, setFotoEquipo] = useState(null)
+  const [fotoPlaca, setFotoPlaca] = useState(null)
   const [archivoPdf, setArchivoPdf] = useState(null)
 
   useEffect(() => {
@@ -92,8 +211,11 @@ export default function Equipos() {
     setForm({
       nombreEs: '', nombreZh: '', modelo: '', serie: '',
       categoria: 'Equipos', precio: '', estado: 'A la venta',
+      fecha: format(new Date(), 'yyyy-MM-dd'),
       numPoliza: '', observaciones: ''
     })
+    setFotoEquipo(null)
+    setFotoPlaca(null)
     setArchivoPdf(null)
     setEditando(null)
   }
@@ -108,15 +230,18 @@ export default function Equipos() {
       categoria: eq.categoria || 'Equipos',
       precio: eq.precio || '',
       estado: eq.estado || 'A la venta',
+      fecha: eq.fecha || format(new Date(), 'yyyy-MM-dd'),
       numPoliza: eq.numPoliza || '',
       observaciones: eq.observaciones || ''
     })
+    setFotoEquipo(null)
+    setFotoPlaca(null)
     setArchivoPdf(null)
     setModalOpen(true)
   }
 
-  const subirPdfPoliza = async (id, file) => {
-    const path = `equipos/${id}/poliza-${Date.now()}-${file.name}`
+  const subirArchivoStorage = async (id, tipo, file) => {
+    const path = `equipos/${id}/${tipo}-${Date.now()}-${file.name}`
     const storageRef = ref(storage, path)
     await uploadBytes(storageRef, file)
     return await getDownloadURL(storageRef)
@@ -135,10 +260,18 @@ export default function Equipos() {
 
       let polizaUrl = editando?.polizaUrl || ''
       let polizaNombre = editando?.polizaNombre || ''
+      let fotoEquipoUrl = editando?.fotoEquipoUrl || ''
+      let fotoPlacaUrl = editando?.fotoPlacaUrl || ''
 
       if (archivoPdf) {
-        polizaUrl = await subirPdfPoliza(docRef.id, archivoPdf)
+        polizaUrl = await subirArchivoStorage(docRef.id, 'poliza', archivoPdf)
         polizaNombre = archivoPdf.name
+      }
+      if (fotoEquipo) {
+        fotoEquipoUrl = await subirArchivoStorage(docRef.id, 'equipo', fotoEquipo)
+      }
+      if (fotoPlaca) {
+        fotoPlacaUrl = await subirArchivoStorage(docRef.id, 'placa', fotoPlaca)
       }
 
       const payload = {
@@ -149,10 +282,13 @@ export default function Equipos() {
         categoria: form.categoria,
         precio: parseFloat(form.precio) || 0,
         estado: form.estado,
+        fecha: form.fecha,
         numPoliza: form.numPoliza.trim(),
         observaciones: form.observaciones.trim(),
         polizaUrl,
-        polizaNombre
+        polizaNombre,
+        fotoEquipoUrl,
+        fotoPlacaUrl
       }
 
       if (esNuevo) {
@@ -238,11 +374,16 @@ export default function Equipos() {
           </p>
         </div>
 
-        {canEdit && (
-          <button onClick={() => { resetForm(); setModalOpen(true) }} className="btn-primary flex items-center gap-2">
-            <Plus size={16}/> Registrar Equipo
+        <div className="flex items-center gap-2 flex-wrap">
+          <button onClick={() => imprimirPlanillaEquipos(equiposFiltrados)} className="btn-secondary flex items-center gap-1.5">
+            <Printer size={16}/> Imprimir Planilla
           </button>
-        )}
+          {canEdit && (
+            <button onClick={() => { resetForm(); setModalOpen(true) }} className="btn-primary flex items-center gap-2">
+              <Plus size={16}/> Registrar Equipo
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Control de Pestañas (Tabs) y Buscador */}
@@ -295,29 +436,42 @@ export default function Equipos() {
       {/* Tabla de Equipos */}
       <div className="card p-0 overflow-hidden shadow-sm border border-gray-100">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm min-w-[650px]">
+          <table className="w-full text-left text-sm min-w-[700px]">
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
               <tr>
+                <th className="py-3 px-4 w-14">Foto</th>
                 <th className="py-3 px-4">Equipo / Nombre</th>
                 <th className="py-3 px-4">Modelo / Serie</th>
                 <th className="py-3 px-4">Estado</th>
                 <th className="py-3 px-4">Precio</th>
                 <th className="py-3 px-4">Póliza PDF</th>
+                <th className="py-3 px-4">Fecha</th>
                 <th className="py-3 px-4 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {equiposFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-10 text-gray-400">
+                  <td colSpan={8} className="text-center py-10 text-gray-400">
                     No se encontraron equipos en esta categoría
                   </td>
                 </tr>
               ) : (
                 equiposFiltrados.map(eq => {
                   const estObj = ESTADOS.find(e => e.id === eq.estado) || ESTADOS[0]
+                  const fechaFmt = eq.fecha ? format(new Date(eq.fecha + 'T00:00:00'), 'dd/MM/yyyy') : (eq.creadoEn?.toDate ? format(eq.creadoEn.toDate(), 'dd/MM/yyyy') : '—')
                   return (
                     <tr key={eq.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="py-3 px-4">
+                        {eq.fotoEquipoUrl ? (
+                          <img src={eq.fotoEquipoUrl} alt="foto" className="w-10 h-10 rounded-lg object-cover border border-gray-200"/>
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                            <ImageIcon size={16} className="text-gray-300"/>
+                          </div>
+                        )}
+                      </td>
+
                       <td className="py-3 px-4">
                         <div className="font-semibold text-gray-900">{eq.nombreEs}</div>
                         {eq.nombreZh && <div className="text-xs text-gray-400">{eq.nombreZh}</div>}
@@ -359,6 +513,10 @@ export default function Equipos() {
                         )}
                       </td>
 
+                      <td className="py-3 px-4 text-xs text-gray-500 font-medium">
+                        {fechaFmt}
+                      </td>
+
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {canEdit && (
@@ -393,6 +551,13 @@ export default function Equipos() {
       {/* Modal Crear / Editar */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editando ? 'Editar Equipo' : 'Nuevo Equipo'} size="lg">
         <form onSubmit={handleGuardar} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <CampoFoto label="Foto del equipo" urlActual={editando?.fotoEquipoUrl}
+              archivoSeleccionado={fotoEquipo} onSeleccionar={setFotoEquipo} />
+            <CampoFoto label="Foto de la placa / serie" urlActual={editando?.fotoPlacaUrl}
+              archivoSeleccionado={fotoPlaca} onSeleccionar={setFotoPlaca} />
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Nombre (Español) *</label>
@@ -458,7 +623,7 @@ export default function Equipos() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Estado del Equipo</label>
               <select
@@ -479,6 +644,16 @@ export default function Equipos() {
                 placeholder="Ej. POL-2026-0045"
                 value={form.numPoliza}
                 onChange={e => setForm({ ...form, numPoliza: e.target.value })}
+                className="input-field"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Fecha</label>
+              <input
+                type="date"
+                value={form.fecha}
+                onChange={e => setForm({ ...form, fecha: e.target.value })}
                 className="input-field"
               />
             </div>
@@ -554,3 +729,4 @@ export default function Equipos() {
     </div>
   )
 }
+

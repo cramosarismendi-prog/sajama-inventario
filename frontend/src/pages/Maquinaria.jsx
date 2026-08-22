@@ -12,11 +12,21 @@ import { PageLoader } from '../components/ui/Spinner'
 import { Modal } from '../components/ui/Modal'
 import { EmptyState } from '../components/ui/EmptyState'
 import { Confirm } from '../components/ui/Confirm'
-import { Plus, Edit2, Trash2, Truck, Image as ImageIcon, Printer, Loader2, CheckSquare, Square, Languages } from 'lucide-react'
+import { Plus, Edit2, Trash2, Truck, Image as ImageIcon, Printer, Loader2, CheckSquare, Square, Languages, Tag } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
-const UNIDADES = ['Uni', 'Litro', 'Caja', 'Par', 'Juego', 'Kg']
+const UNIDADES = ['Volqueta', 'Excavadora', 'Pala', 'Retroexcavadora', 'Uni', 'Juego', 'Litro', 'Caja', 'Par', 'Kg']
+
+const ESTADOS = [
+  { id: 'A la venta',      label: 'A la venta',      color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+  { id: 'En operación',    label: 'En operación',    color: 'bg-blue-100 text-blue-800 border-blue-300' },
+  { id: 'En mantenimiento',label: 'En mantenimiento',color: 'bg-amber-100 text-amber-800 border-amber-300' },
+  { id: 'Vendido',         label: 'Vendido',         color: 'bg-purple-100 text-purple-800 border-purple-300' },
+  { id: 'Despachado',      label: 'Despachado',      color: 'bg-indigo-100 text-indigo-800 border-indigo-300' },
+  { id: 'Entregado',       label: 'Entregado',       color: 'bg-cyan-100 text-cyan-800 border-cyan-300' },
+  { id: 'Existente',       label: 'Existente',       color: 'bg-slate-100 text-slate-800 border-slate-300' }
+]
 
 // ── Selector de foto individual ──────────────────────────────────────
 function CampoFoto({ label, urlActual, archivoSeleccionado, onSeleccionar }) {
@@ -47,9 +57,11 @@ function FormMaquina({ maquina, onGuardar, onCancelar }) {
   const [nombreEs,  setNombreEs]  = useState(maquina?.nombreEs || '')
   const [nombreZh,  setNombreZh]  = useState(maquina?.nombreZh || '')
   const [modelo,    setModelo]    = useState(maquina?.modelo || '')
-  const [serie,     setSerie]     = useState(maquina?.serie || '')
+  const [serie,     setSerie]     = useState(maquina?.serie || '') // Chasis / Placa
   const [precio,    setPrecio]    = useState(maquina?.precio ?? '')
-  const [unidad,    setUnidad]    = useState(maquina?.unidad || 'Uni')
+  const [unidad,    setUnidad]    = useState(maquina?.unidad || 'Volqueta')
+  const [estado,    setEstado]    = useState(maquina?.estado || 'A la venta')
+  const [fecha,     setFecha]     = useState(maquina?.fecha || format(new Date(), 'yyyy-MM-dd'))
   const [observaciones, setObservaciones] = useState(maquina?.observaciones || '')
   const [fotoMaquina, setFotoMaquina] = useState(null)
   const [fotoPlaca,   setFotoPlaca]   = useState(null)
@@ -90,6 +102,7 @@ function FormMaquina({ maquina, onGuardar, onCancelar }) {
       await onGuardar({
         nombreEs: nombreEs.trim(), nombreZh: nombreZh.trim(), modelo: modelo.trim(),
         serie: serie.trim(), precio: Number(precio) || 0, unidad,
+        estado, fecha,
         observaciones: observaciones.trim(),
         fotoMaquina, fotoPlaca,
       })
@@ -131,7 +144,7 @@ function FormMaquina({ maquina, onGuardar, onCancelar }) {
           <input className="input" value={modelo} onChange={e => setModelo(e.target.value)} placeholder="Ej: 336D" />
         </div>
         <div>
-          <label className="label">N° Serie</label>
+          <label className="label">Chasis / Placa</label>
           <input className="input" value={serie} onChange={e => setSerie(e.target.value)} placeholder="Ej: CAT0336DVHBK10311" />
         </div>
         <div>
@@ -142,9 +155,21 @@ function FormMaquina({ maquina, onGuardar, onCancelar }) {
         </div>
       </div>
 
-      <div>
-        <label className="label">Precio Unitario (Bs)</label>
-        <input className="input" type="number" min="0" step="0.01" value={precio} onChange={e => setPrecio(e.target.value)} placeholder="0" />
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <label className="label">Estado</label>
+          <select className="input" value={estado} onChange={e => setEstado(e.target.value)}>
+            {ESTADOS.map(est => <option key={est.id} value={est.id}>{est.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="label">Precio Unitario (Bs)</label>
+          <input className="input" type="number" min="0" step="0.01" value={precio} onChange={e => setPrecio(e.target.value)} placeholder="0" />
+        </div>
+        <div>
+          <label className="label">Fecha</label>
+          <input className="input" type="date" value={fecha} onChange={e => setFecha(e.target.value)} />
+        </div>
       </div>
 
       <div>
@@ -218,7 +243,7 @@ function FormTransporte({ maquinasSeleccionadas, onImprimir, onCancelar }) {
   )
 }
 
-// ── Impresión del formulario bilingüe con fotos grandes ─────────────────
+// ── Impresión del formulario de transporte bilingüe con fotos (A4 Horizontal) ──
 function imprimirFormularioTransporte(maquinas, datosTransporte) {
   const fechaFmt = datosTransporte.fecha ? format(new Date(datosTransporte.fecha + 'T00:00:00'), 'dd/MM/yyyy') : ''
   const montoTotal = maquinas.reduce((a, m) => a + (Number(m.precio) || 0), 0)
@@ -231,7 +256,7 @@ function imprimirFormularioTransporte(maquinas, datosTransporte) {
       <td style="border:1px solid #777;padding:5px">${m.modelo || ''}</td>
       <td style="border:1px solid #777;padding:5px;font-family:monospace;font-weight:bold">${m.serie || ''}</td>
       <td style="text-align:right;border:1px solid #777;padding:5px">${m.precio ? Number(m.precio).toLocaleString() : ''}</td>
-      <td style="text-align:center;border:1px solid #777;padding:5px">${m.unidad || 'Uni'}</td>
+      <td style="text-align:center;border:1px solid #777;padding:5px">${m.unidad || 'Volqueta'}</td>
       <td style="text-align:center;border:1px solid #777;padding:5px;font-weight:bold">1</td>
       <td style="text-align:right;border:1px solid #777;padding:5px;font-weight:bold">${m.precio ? Number(m.precio).toLocaleString() : ''}</td>
       <td style="border:1px solid #777;padding:5px;font-size:7.5pt">${m.observaciones || ''}</td>
@@ -249,8 +274,8 @@ function imprimirFormularioTransporte(maquinas, datosTransporte) {
         ` : ''}
         ${m.fotoPlacaUrl ? `
           <div class="foto-card">
-            <div class="foto-titulo">铭牌序列号照片 / FOTO DE PLACA Y SERIE</div>
-            <img src="${m.fotoPlacaUrl}" class="foto-img" alt="Foto Placa y Serie"/>
+            <div class="foto-titulo">铭牌/底盘照片 / FOTO DE CHASIS Y PLACA</div>
+            <img src="${m.fotoPlacaUrl}" class="foto-img" alt="Foto Chasis y Placa"/>
           </div>
         ` : ''}
       </div>
@@ -277,7 +302,7 @@ td { border:1px solid #777; padding:4px 5px; }
 .seccion-fotos { display:flex; gap:12px; justify-content:center; align-items:stretch; margin:8px 0; border:1.5px solid #666; padding:8px; background:#fff; border-radius:4px; page-break-inside:avoid; }
 .foto-card { flex:1; text-align:center; display:flex; flex-direction:column; align-items:center; }
 .foto-titulo { font-size:8pt; font-weight:bold; color:#1a3c6e; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px; }
-.foto-img { width:100%; height:250px; object-fit:contain; border:1px solid #888; background:#fafafa; border-radius:3px; }
+.foto-img { width:100%; height:230px; object-fit:contain; border:1px solid #888; background:#fafafa; border-radius:3px; }
 
 .datos { border:1.5px solid #666; margin-top:6px; font-size:8pt; }
 .fila-datos { display:flex; border-bottom:1px solid #666; }
@@ -287,7 +312,7 @@ td { border:1px solid #777; padding:4px 5px; }
 .celda-dato b { display:block; font-size:7.5pt; color:#333; margin-bottom:2px; font-weight:700; }
 .celda-valor { font-size:8.5pt; color:#000; }
 
-@page { size:A4 portrait; margin:8mm 8mm; }
+@page { size:A4 landscape; margin:8mm 8mm; }
 @media print {
   body { padding:0; }
   .seccion-fotos { page-break-inside:avoid; }
@@ -307,7 +332,7 @@ td { border:1px solid #777; padding:4px 5px; }
     <th style="width:14%">名称<br/>Nombre en Chino</th>
     <th style="width:15%">西语名称<br/>Nombre en Español</th>
     <th style="width:10%">型号<br/>Modelo</th>
-    <th style="width:15%">序列号<br/>Series</th>
+    <th style="width:15%">底盘/车牌号<br/>Chasis / Placa</th>
     <th style="width:9%">单价(Bs)<br/>Precio Unitario</th>
     <th style="width:5%">单位<br/>Unidad</th>
     <th style="width:5%">数量<br/>Cantidad</th>
@@ -369,7 +394,91 @@ window.onload = () => {
 <\/script>
 </body></html>`
 
-  const w = window.open('', '_blank', 'width=950,height=800')
+  const w = window.open('', '_blank', 'width=1100,height=800')
+  w.document.write(html)
+  w.document.close()
+}
+
+// ── Impresión de Planilla General de Maquinaria (A4 Horizontal por defecto) ──
+function imprimirPlanillaMaquinaria(maquinas) {
+  const montoTotal = maquinas.reduce((a, m) => a + (Number(m.precio) || 0), 0)
+  const fechaHoy = format(new Date(), 'dd/MM/yyyy')
+
+  const filasHTML = maquinas.map((m, i) => {
+    const fechaFmt = m.fecha ? format(new Date(m.fecha + 'T00:00:00'), 'dd/MM/yyyy') : (m.creadoEn?.toDate ? format(m.creadoEn.toDate(), 'dd/MM/yyyy') : '—')
+    return `
+      <tr>
+        <td style="text-align:center;border:1px solid #777;padding:5px">${i + 1}</td>
+        <td style="border:1px solid #777;padding:5px;font-weight:600">${m.nombreEs || ''}</td>
+        <td style="border:1px solid #777;padding:5px;font-weight:600">${m.nombreZh || '—'}</td>
+        <td style="border:1px solid #777;padding:5px">${m.modelo || '—'}</td>
+        <td style="border:1px solid #777;padding:5px;font-family:monospace;font-weight:bold">${m.serie || '—'}</td>
+        <td style="text-align:right;border:1px solid #777;padding:5px">${m.precio ? Number(m.precio).toLocaleString() + ' Bs' : '—'}</td>
+        <td style="text-align:center;border:1px solid #777;padding:5px">${m.unidad || '—'}</td>
+        <td style="text-align:center;border:1px solid #777;padding:5px"><span class="badge">${m.estado || 'A la venta'}</span></td>
+        <td style="text-align:center;border:1px solid #777;padding:5px">${fechaFmt}</td>
+      </tr>
+    `
+  }).join('')
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>Planilla de Maquinaria - SAJAMA</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:8.5pt; color:#111; padding:6mm 8mm; }
+.header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; border-bottom:2px solid #1a3c6e; padding-bottom:6px; }
+.logo { font-size:16pt; font-weight:900; color:#1a3c6e; }
+.htxt { flex:1; text-align:center; }
+.titzh { font-size:14pt; font-weight:700; }
+.tites { font-size:10pt; color:#1a3c6e; font-weight:600; margin-top:2px; }
+
+table { width:100%; border-collapse:collapse; margin-top:8px; font-size:8pt; }
+th { background:#e2e8f0; border:1px solid #555; padding:5px 4px; text-align:center; font-weight:700; line-height:1.2; font-size:8pt; }
+td { border:1px solid #777; padding:4px 6px; }
+.total-row td { font-weight:700; background:#f1f5f9; }
+.badge { display:inline-block; padding:2px 6px; border-radius:4px; font-size:7.5pt; font-weight:bold; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; }
+
+@page { size:A4 landscape; margin:8mm 8mm; }
+@media print { body { padding:0; } }
+</style></head><body>
+<div class="header">
+  <div class="logo">Sajama.SRL</div>
+  <div class="htxt">
+    <div class="titzh">SAJAMA 公司工程机械设备清单</div>
+    <div class="tites">Planilla de Control de Maquinaria y Equipos Pesados - SAJAMA</div>
+  </div>
+  <div style="font-size:8pt;text-align:right;color:#555">Fecha de impresión:<br/><b>${fechaHoy}</b></div>
+</div>
+
+<table>
+  <thead><tr>
+    <th style="width:4%">No.</th>
+    <th style="width:18%">Nombre (ES)</th>
+    <th style="width:16%">中文名称</th>
+    <th style="width:12%">Modelo</th>
+    <th style="width:16%">Chasis / Placa</th>
+    <th style="width:12%">Precio (Bs)</th>
+    <th style="width:8%">Unidad</th>
+    <th style="width:8%">Estado</th>
+    <th style="width:6%">Fecha</th>
+  </tr></thead>
+  <tbody>
+    ${filasHTML}
+    <tr class="total-row">
+      <td colspan="5" style="text-align:right;padding-right:8px;font-size:8.5pt">Total acumulado (${maquinas.length} ítems):</td>
+      <td style="text-align:right;font-size:9pt;font-weight:bold;padding-right:6px">${montoTotal.toLocaleString()} Bs</td>
+      <td colspan="3"></td>
+    </tr>
+  </tbody>
+</table>
+
+<script>
+window.onload = () => { setTimeout(() => window.print(), 300); };
+<\/script>
+</body></html>`
+
+  const w = window.open('', '_blank', 'width=1100,height=800')
   w.document.write(html)
   w.document.close()
 }
@@ -385,22 +494,15 @@ export default function Maquinaria() {
   const [seleccionadas, setSeleccionadas] = useState(new Set())
   const [modalTransporte, setModalTransporte] = useState(false)
 
-  // ── DEBUG TEMPORAL: confirma si el componente llega a montarse ──────
-  console.log('🚧 [Maquinaria.jsx] Componente MONTADO. Perfil actual:', perfil)
-
   useEffect(() => {
-    console.log('🚧 [Maquinaria.jsx] useEffect ejecutado, suscribiendo onSnapshot...')
     const unsub = onSnapshot(
       query(collection(db, 'maquinaria'), orderBy('creadoEn', 'desc')),
       snap => {
-        console.log('🚧 [Maquinaria.jsx] onSnapshot OK, docs:', snap.docs.length)
         setMaquinas(snap.docs.map(d => ({ id: d.id, ...d.data() })))
         setLoading(false)
       },
       (err) => {
-        // ── Antes esto no tenía callback de error: si Firestore rechazaba
-        // la consulta (permisos, índice faltante, etc.) fallaba en silencio.
-        console.error('🚧 [Maquinaria.jsx] ERROR en onSnapshot:', err.code, err.message)
+        console.error('ERROR en onSnapshot Maquinaria:', err.code, err.message)
         toast.error('Error cargando maquinaria: ' + err.message)
         setLoading(false)
       }
@@ -426,6 +528,7 @@ export default function Maquinaria() {
       const payload = {
         nombreEs: data.nombreEs, nombreZh: data.nombreZh, modelo: data.modelo,
         serie: data.serie, precio: data.precio, unidad: data.unidad,
+        estado: data.estado, fecha: data.fecha,
         observaciones: data.observaciones,
       }
 
@@ -468,17 +571,12 @@ export default function Maquinaria() {
 
   const maquinasSeleccionadas = maquinas.filter(m => seleccionadas.has(m.id))
 
-  const handleImprimir = (datosTransporte) => {
+  const handleImprimirTransporte = (datosTransporte) => {
     imprimirFormularioTransporte(maquinasSeleccionadas, datosTransporte)
     setModalTransporte(false)
   }
 
-  if (loading) {
-    console.log('🚧 [Maquinaria.jsx] Todavía cargando (loading=true), mostrando PageLoader...')
-    return <PageLoader />
-  }
-
-  console.log('🚧 [Maquinaria.jsx] Renderizando tabla, máquinas:', maquinas.length)
+  if (loading) return <PageLoader />
 
   return (
     <div className="space-y-5">
@@ -492,13 +590,16 @@ export default function Maquinaria() {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
+          <button onClick={() => imprimirPlanillaMaquinaria(maquinas)} className="btn-secondary btn-sm flex items-center gap-1.5">
+            <Printer size={14}/> Imprimir Planilla
+          </button>
           {seleccionadas.size > 0 && (
             <button onClick={() => setModalTransporte(true)} className="btn-primary btn-sm">
-              <Printer size={14}/> Generar Formulario de Transporte ({seleccionadas.size})
+              <Printer size={14}/> Formulario de Transporte ({seleccionadas.size})
             </button>
           )}
           {canEdit && (
-            <button onClick={() => { setEditando(null); setModal(true) }} className="btn-secondary btn-sm">
+            <button onClick={() => { setEditando(null); setModal(true) }} className="btn-primary btn-sm">
               <Plus size={14}/> Nueva máquina
             </button>
           )}
@@ -508,56 +609,68 @@ export default function Maquinaria() {
       <div className="card p-0 overflow-hidden">
         {maquinas.length === 0 ? <EmptyState mensaje="No hay máquinas registradas"/> : (
           <div className="overflow-x-auto">
-            <table className="table-auto w-full">
+            <table className="table-auto w-full min-w-[750px]">
               <thead><tr>
                 <th className="th w-10"></th>
                 <th className="th w-14">Foto</th>
                 <th className="th">Nombre (ES)</th>
                 <th className="th">中文名称</th>
                 <th className="th">Modelo</th>
-                <th className="th">N° Serie</th>
+                <th className="th">Chasis / Placa</th>
                 <th className="th">Precio (Bs)</th>
                 <th className="th">Unidad</th>
+                <th className="th">Estado</th>
+                <th className="th">Fecha</th>
                 {canEdit && <th className="th">Acciones</th>}
               </tr></thead>
               <tbody>
-                {maquinas.map(m => (
-                  <tr key={m.id} className={`tr-hover ${seleccionadas.has(m.id) ? 'bg-primary-pale' : ''}`}>
-                    <td className="td">
-                      <button onClick={() => toggleSeleccion(m.id)} className="text-primary">
-                        {seleccionadas.has(m.id) ? <CheckSquare size={18}/> : <Square size={18} className="text-gray-300"/>}
-                      </button>
-                    </td>
-                    <td className="td">
-                      {m.fotoMaquinaUrl
-                        ? <img src={m.fotoMaquinaUrl} alt="foto" className="w-10 h-10 rounded-lg object-cover border border-gray-200"/>
-                        : <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center"><ImageIcon size={16} className="text-gray-300"/></div>
-                      }
-                    </td>
-                    <td className="td font-medium">{m.nombreEs}</td>
-                    <td className="td text-gray-600">{m.nombreZh || '—'}</td>
-                    <td className="td text-gray-500 text-sm">{m.modelo || '—'}</td>
-                    <td className="td text-gray-500 text-xs font-mono">{m.serie || '—'}</td>
-                    <td className="td">{m.precio ? `${Number(m.precio).toLocaleString()} Bs` : '—'}</td>
-                    <td className="td text-gray-500 text-sm">{m.unidad || '—'}</td>
-                    {canEdit && (
+                {maquinas.map(m => {
+                  const estObj = ESTADOS.find(e => e.id === m.estado) || ESTADOS[0]
+                  const fechaFmt = m.fecha ? format(new Date(m.fecha + 'T00:00:00'), 'dd/MM/yyyy') : (m.creadoEn?.toDate ? format(m.creadoEn.toDate(), 'dd/MM/yyyy') : '—')
+                  return (
+                    <tr key={m.id} className={`tr-hover ${seleccionadas.has(m.id) ? 'bg-primary-pale' : ''}`}>
                       <td className="td">
-                        <div className="flex gap-1.5">
-                          <button onClick={() => { setEditando(m); setModal(true) }}
-                            className="p-1.5 rounded-lg hover:bg-primary-pale text-primary transition-colors" title="Editar">
-                            <Edit2 size={14}/>
-                          </button>
-                          {canDelete && (
-                            <button onClick={() => setDelMaquina(m)}
-                              className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors" title="Eliminar">
-                              <Trash2 size={14}/>
-                            </button>
-                          )}
-                        </div>
+                        <button onClick={() => toggleSeleccion(m.id)} className="text-primary">
+                          {seleccionadas.has(m.id) ? <CheckSquare size={18}/> : <Square size={18} className="text-gray-300"/>}
+                        </button>
                       </td>
-                    )}
-                  </tr>
-                ))}
+                      <td className="td">
+                        {m.fotoMaquinaUrl
+                          ? <img src={m.fotoMaquinaUrl} alt="foto" className="w-10 h-10 rounded-lg object-cover border border-gray-200"/>
+                          : <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center"><ImageIcon size={16} className="text-gray-300"/></div>
+                        }
+                      </td>
+                      <td className="td font-medium">{m.nombreEs}</td>
+                      <td className="td text-gray-600">{m.nombreZh || '—'}</td>
+                      <td className="td text-gray-500 text-sm">{m.modelo || '—'}</td>
+                      <td className="td text-gray-500 text-xs font-mono font-bold">{m.serie || '—'}</td>
+                      <td className="td">{m.precio ? `${Number(m.precio).toLocaleString()} Bs` : '—'}</td>
+                      <td className="td text-gray-500 text-sm">{m.unidad || '—'}</td>
+                      <td className="td">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${estObj.color}`}>
+                          <Tag size={11}/> {m.estado || 'A la venta'}
+                        </span>
+                      </td>
+                      <td className="td text-gray-500 text-xs">{fechaFmt}</td>
+                      {canEdit && (
+                        <td className="td">
+                          <div className="flex gap-1.5">
+                            <button onClick={() => { setEditando(m); setModal(true) }}
+                              className="p-1.5 rounded-lg hover:bg-primary-pale text-primary transition-colors" title="Editar">
+                              <Edit2 size={14}/>
+                            </button>
+                            {canDelete && (
+                              <button onClick={() => setDelMaquina(m)}
+                                className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors" title="Eliminar">
+                                <Trash2 size={14}/>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -573,7 +686,7 @@ export default function Maquinaria() {
       <Modal open={modalTransporte} onClose={() => setModalTransporte(false)}
         title="Formulario de Confirmación de Transporte" size="lg">
         <FormTransporte maquinasSeleccionadas={maquinasSeleccionadas}
-          onImprimir={handleImprimir} onCancelar={() => setModalTransporte(false)} />
+          onImprimir={handleImprimirTransporte} onCancelar={() => setModalTransporte(false)} />
       </Modal>
 
       <Confirm open={!!delMaquina}
@@ -582,3 +695,4 @@ export default function Maquinaria() {
     </div>
   )
 }
+
