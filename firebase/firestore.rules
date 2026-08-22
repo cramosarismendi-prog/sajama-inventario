@@ -87,5 +87,14 @@ service cloud.firestore {
     match /abastecimiento_salidas/{id} {
       allow read, write: if isAuth();
     }
+    match /kardex_movimientos/{id} {
+      allow read, write: if isAuth();
+    }
+    match /kardex_cierres_mensuales/{id} {
+      allow read, write: if isAuth();
+    }
+    match /kardex_conciliaciones/{id} {
+      allow read, write: if isAuth();
+    }
   }
 }

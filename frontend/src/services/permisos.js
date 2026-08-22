@@ -180,15 +180,6 @@ export const getPermisosEfectivos = (perfil) => {
     }
   }
 
-  // Kardex Contable restringido exclusivamente al usuario Administrador admin@sajama.com
-  const esAdminSajama = perfil?.email?.toLowerCase() === 'admin@sajama.com' && perfil?.rol === 'administrador'
-  resultado['kardex'] = {
-    ver: esAdminSajama,
-    crear: esAdminSajama,
-    editar: esAdminSajama,
-    eliminar: esAdminSajama,
-  }
-
   return resultado
 }
 
