@@ -12,7 +12,7 @@ import { PageLoader } from '../components/ui/Spinner'
 import { Modal } from '../components/ui/Modal'
 import { EmptyState } from '../components/ui/EmptyState'
 import { Confirm } from '../components/ui/Confirm'
-import { Plus, Edit2, Trash2, Truck, Image as ImageIcon, Printer, Loader2, CheckSquare, Square, Languages, Tag } from 'lucide-react'
+import { Plus, Edit2, Trash2, Truck, Image as ImageIcon, Printer, Loader2, CheckSquare, Square, Languages, Tag, FileText, Paperclip, ExternalLink } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
@@ -61,10 +61,12 @@ function FormMaquina({ maquina, onGuardar, onCancelar }) {
   const [precio,    setPrecio]    = useState(maquina?.precio ?? '')
   const [unidad,    setUnidad]    = useState(maquina?.unidad || 'Volqueta')
   const [estado,    setEstado]    = useState(maquina?.estado || 'A la venta')
+  const [numPoliza, setNumPoliza] = useState(maquina?.numPoliza || '')
   const [fecha,     setFecha]     = useState(maquina?.fecha || format(new Date(), 'yyyy-MM-dd'))
   const [observaciones, setObservaciones] = useState(maquina?.observaciones || '')
   const [fotoMaquina, setFotoMaquina] = useState(null)
   const [fotoPlaca,   setFotoPlaca]   = useState(null)
+  const [archivoPoliza, setArchivoPoliza] = useState(null)
   const [guardando, setGuardando] = useState(false)
   const [traduciendo, setTraduciendo] = useState(false)
   const [error, setError] = useState('')
@@ -102,9 +104,9 @@ function FormMaquina({ maquina, onGuardar, onCancelar }) {
       await onGuardar({
         nombreEs: nombreEs.trim(), nombreZh: nombreZh.trim(), modelo: modelo.trim(),
         serie: serie.trim(), precio: Number(precio) || 0, unidad,
-        estado, fecha,
+        estado, numPoliza: numPoliza.trim(), fecha,
         observaciones: observaciones.trim(),
-        fotoMaquina, fotoPlaca,
+        fotoMaquina, fotoPlaca, archivoPoliza,
       })
     } finally { setGuardando(false) }
   }
@@ -169,6 +171,40 @@ function FormMaquina({ maquina, onGuardar, onCancelar }) {
         <div>
           <label className="label">Fecha</label>
           <input className="input" type="date" value={fecha} onChange={e => setFecha(e.target.value)} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="label">N° de Póliza</label>
+          <input className="input" value={numPoliza} onChange={e => setNumPoliza(e.target.value)} placeholder="Ej: POL-2026-889" />
+        </div>
+        <div>
+          <label className="label">Póliza PDF</label>
+          <div className="flex items-center gap-2 mt-1">
+            <input id="pdf-poliza-maquina" type="file" accept="application/pdf" className="hidden"
+              onChange={e => {
+                const f = e.target.files[0]
+                if (f) {
+                  if (f.type !== 'application/pdf') return toast.error('Solo se permiten archivos PDF')
+                  setArchivoPoliza(f)
+                }
+              }} />
+            <label htmlFor="pdf-poliza-maquina" className="btn-secondary btn-sm cursor-pointer whitespace-nowrap">
+              <Paperclip size={13}/> {archivoPoliza || maquina?.polizaUrl ? 'Cambiar PDF' : 'Adjuntar PDF'}
+            </label>
+            {(archivoPoliza || maquina?.polizaUrl) && (
+              <span className="text-xs text-gray-500 truncate max-w-[130px]" title={archivoPoliza?.name || maquina?.polizaNombre || 'Póliza PDF'}>
+                {archivoPoliza?.name || maquina?.polizaNombre || 'Póliza PDF'}
+              </span>
+            )}
+            {maquina?.polizaUrl && !archivoPoliza && (
+              <a href={maquina.polizaUrl} target="_blank" rel="noopener noreferrer"
+                className="p-1.5 rounded-lg hover:bg-primary-pale text-primary transition-colors" title="Ver PDF actual">
+                <ExternalLink size={14}/>
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
@@ -416,6 +452,10 @@ function imprimirPlanillaMaquinaria(maquinas) {
         <td style="text-align:right;border:1px solid #777;padding:5px">${m.precio ? Number(m.precio).toLocaleString() + ' Bs' : '—'}</td>
         <td style="text-align:center;border:1px solid #777;padding:5px">${m.unidad || '—'}</td>
         <td style="text-align:center;border:1px solid #777;padding:5px"><span class="badge">${m.estado || 'A la venta'}</span></td>
+        <td style="border:1px solid #777;padding:5px;font-size:7.5pt">
+          ${m.polizaUrl ? '📄 Póliza adjunta' : 'Sin póliza'}
+          ${m.numPoliza ? `<br/><b>N°: ${m.numPoliza}</b>` : ''}
+        </td>
         <td style="text-align:center;border:1px solid #777;padding:5px">${fechaFmt}</td>
       </tr>
     `
@@ -454,13 +494,14 @@ td { border:1px solid #777; padding:4px 6px; }
 <table>
   <thead><tr>
     <th style="width:4%">No.</th>
-    <th style="width:18%">Nombre (ES)</th>
-    <th style="width:16%">中文名称</th>
-    <th style="width:12%">Modelo</th>
-    <th style="width:16%">Chasis / Placa</th>
-    <th style="width:12%">Precio (Bs)</th>
-    <th style="width:8%">Unidad</th>
+    <th style="width:16%">Nombre (ES)</th>
+    <th style="width:14%">中文名称</th>
+    <th style="width:10%">Modelo</th>
+    <th style="width:14%">Chasis / Placa</th>
+    <th style="width:11%">Precio (Bs)</th>
+    <th style="width:6%">Unidad</th>
     <th style="width:8%">Estado</th>
+    <th style="width:11%">Póliza PDF</th>
     <th style="width:6%">Fecha</th>
   </tr></thead>
   <tbody>
@@ -468,7 +509,7 @@ td { border:1px solid #777; padding:4px 6px; }
     <tr class="total-row">
       <td colspan="5" style="text-align:right;padding-right:8px;font-size:8.5pt">Total acumulado (${maquinas.length} ítems):</td>
       <td style="text-align:right;font-size:9pt;font-weight:bold;padding-right:6px">${montoTotal.toLocaleString()} Bs</td>
-      <td colspan="3"></td>
+      <td colspan="4"></td>
     </tr>
   </tbody>
 </table>
@@ -485,7 +526,7 @@ window.onload = () => { setTimeout(() => window.print(), 300); };
 
 // ── Página principal ──────────────────────────────────────────────────
 export default function Maquinaria() {
-  const { perfil } = useAuth()
+  const { perfil, tienePermiso } = useAuth()
   const [maquinas, setMaquinas] = useState([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModal] = useState(false)
@@ -510,8 +551,8 @@ export default function Maquinaria() {
     return unsub
   }, [])
 
-  const canEdit = ['administrador', 'gerencia', 'almacenero'].includes(perfil?.rol)
-  const canDelete = perfil?.rol === 'administrador'
+  const canEdit = tienePermiso('maquinaria', 'crear') || tienePermiso('maquinaria', 'editar') || ['administrador', 'gerencia', 'almacenero', 'aduanas'].includes(perfil?.rol)
+  const canDelete = tienePermiso('maquinaria', 'eliminar') || ['administrador'].includes(perfil?.rol)
 
   const subirFoto = async (id, tipo, file) => {
     const path = `maquinaria/${id}/${tipo}-${Date.now()}-${file.name}`
@@ -528,12 +569,16 @@ export default function Maquinaria() {
       const payload = {
         nombreEs: data.nombreEs, nombreZh: data.nombreZh, modelo: data.modelo,
         serie: data.serie, precio: data.precio, unidad: data.unidad,
-        estado: data.estado, fecha: data.fecha,
+        estado: data.estado, numPoliza: data.numPoliza || '', fecha: data.fecha,
         observaciones: data.observaciones,
       }
 
       if (data.fotoMaquina) payload.fotoMaquinaUrl = await subirFoto(docRef.id, 'maquina', data.fotoMaquina)
       if (data.fotoPlaca)   payload.fotoPlacaUrl   = await subirFoto(docRef.id, 'placa', data.fotoPlaca)
+      if (data.archivoPoliza) {
+        payload.polizaUrl = await subirFoto(docRef.id, 'poliza', data.archivoPoliza)
+        payload.polizaNombre = data.archivoPoliza.name
+      }
 
       if (esNuevo) {
         await setDoc(docRef, { ...payload, creadoPor: perfil?.nombre, creadoEn: serverTimestamp() })
@@ -620,6 +665,7 @@ export default function Maquinaria() {
                 <th className="th">Precio (Bs)</th>
                 <th className="th">Unidad</th>
                 <th className="th">Estado</th>
+                <th className="th">Póliza PDF</th>
                 <th className="th">Fecha</th>
                 {canEdit && <th className="th">Acciones</th>}
               </tr></thead>
@@ -650,6 +696,15 @@ export default function Maquinaria() {
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border ${estObj.color}`}>
                           <Tag size={11}/> {m.estado || 'A la venta'}
                         </span>
+                      </td>
+                      <td className="td text-xs">
+                        {m.polizaUrl ? (
+                          <a href={m.polizaUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline font-medium">
+                            <FileText size={13}/> {m.numPoliza ? `N° ${m.numPoliza}` : 'Ver PDF'}
+                          </a>
+                        ) : (
+                          <span className="text-gray-300 text-xs">—</span>
+                        )}
                       </td>
                       <td className="td text-gray-500 text-xs">{fechaFmt}</td>
                       {canEdit && (
