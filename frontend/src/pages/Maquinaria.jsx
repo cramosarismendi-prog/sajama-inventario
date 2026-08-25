@@ -555,10 +555,20 @@ export default function Maquinaria() {
   const canDelete = tienePermiso('maquinaria', 'eliminar') || ['administrador'].includes(perfil?.rol)
 
   const subirFoto = async (id, tipo, file) => {
-    const path = `maquinaria/${id}/${tipo}-${Date.now()}-${file.name}`
-    const storageRef = ref(storage, path)
-    await uploadBytes(storageRef, file)
-    return await getDownloadURL(storageRef)
+    try {
+      const path = `maquinaria/${id}/${tipo}-${Date.now()}-${file.name}`
+      const storageRef = ref(storage, path)
+      await uploadBytes(storageRef, file)
+      return await getDownloadURL(storageRef)
+    } catch (err) {
+      console.warn('Advertencia al subir a Storage, utilizando fallback Base64:', err)
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result)
+        reader.onerror = () => reject(new Error('No se pudo leer el archivo'))
+        reader.readAsDataURL(file)
+      })
+    }
   }
 
   const handleGuardar = async (data) => {
