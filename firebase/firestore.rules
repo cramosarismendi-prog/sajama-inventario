@@ -16,14 +16,15 @@ service cloud.firestore {
       return isAuth() && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol in ['administrador','gerencia','almacenero'];
     }
     function puedeGestionarAduana() {
-      return isAuth() && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol in ['administrador','gerencia','almacenero'];
+      return isAuth() && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol in ['administrador','gerencia','almacenero','aduanas'];
     }
     function puedeGestionarMaquinaria() {
       return isAuth() && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol in ['administrador','gerencia','almacenero'];
     }
 
     match /maquinaria/{id} {
-      allow read, write: if puedeGestionarMaquinaria();
+      allow read: if isAuth();
+      allow write: if puedeGestionarMaquinaria();
     }
     match /equipos/{id} {
       allow read, write: if isAuth();
