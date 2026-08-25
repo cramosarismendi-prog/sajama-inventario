@@ -183,7 +183,7 @@ function FormAduana({ registro, onGuardar, onCancelar }) {
 }
 
 export default function Aduana() {
-  const { perfil } = useAuth()
+  const { perfil, tienePermiso } = useAuth()
   const [registros, setRegistros] = useState([])
   const [loading,   setLoading]   = useState(true)
   const [modalOpen, setModal]     = useState(false)
@@ -198,8 +198,8 @@ export default function Aduana() {
     return unsub
   }, [])
 
-  const canEdit = ['administrador', 'gerencia', 'almacenero'].includes(perfil?.rol)
-  const canDelete = perfil?.rol === 'administrador'
+  const canEdit = tienePermiso('aduana', 'crear') || tienePermiso('aduana', 'editar') || ['administrador', 'gerencia', 'almacenero', 'aduanas'].includes(perfil?.rol)
+  const canDelete = tienePermiso('aduana', 'eliminar') || ['administrador', 'aduanas'].includes(perfil?.rol)
 
   const handleGuardar = async (data) => {
     try {
