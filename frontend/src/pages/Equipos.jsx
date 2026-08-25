@@ -369,9 +369,22 @@ export default function Equipos() {
     )
   })
 
-  const equiposAImprimir = seleccionadas.size > 0
-    ? equiposFiltrados.filter(eq => seleccionadas.has(eq.id))
-    : equiposFiltrados
+  const toggleSeleccionarTodas = () => {
+    if (seleccionadas.size === equiposFiltrados.length && equiposFiltrados.length > 0) {
+      setSeleccionadas(new Set())
+    } else {
+      setSeleccionadas(new Set(equiposFiltrados.map(e => e.id)))
+    }
+  }
+
+  const handleImprimirPlanilla = () => {
+    if (seleccionadas.size === 0) {
+      toast.error('Por favor tikea o selecciona al menos un equipo para imprimir la planilla.')
+      return
+    }
+    const equiposAImprimir = equipos.filter(eq => seleccionadas.has(eq.id))
+    imprimirPlanillaEquipos(equiposAImprimir)
+  }
 
   if (loading) return <PageLoader />
 
@@ -389,7 +402,7 @@ export default function Equipos() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={() => imprimirPlanillaEquipos(equiposAImprimir)} className="btn-secondary flex items-center gap-1.5">
+          <button onClick={handleImprimirPlanilla} className="btn-secondary flex items-center gap-1.5">
             <Printer size={16}/> Imprimir Planilla {seleccionadas.size > 0 ? `(${seleccionadas.size})` : ''}
           </button>
           {canEdit && (
@@ -453,7 +466,11 @@ export default function Equipos() {
           <table className="w-full text-left text-sm min-w-[700px]">
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
               <tr>
-                <th className="py-3 px-3 w-10"></th>
+                <th className="py-3 px-3 w-10">
+                  <button onClick={toggleSeleccionarTodas} className="text-primary hover:scale-105 transition-transform" title="Seleccionar todos / Deseleccionar todos">
+                    {seleccionadas.size > 0 && seleccionadas.size === equiposFiltrados.length ? <CheckSquare size={18}/> : <Square size={18} className="text-gray-300"/>}
+                  </button>
+                </th>
                 <th className="py-3 px-4 w-14">Foto</th>
                 <th className="py-3 px-4">Equipo / Nombre</th>
                 <th className="py-3 px-4">Modelo / Serie</th>

@@ -624,7 +624,23 @@ export default function Maquinaria() {
     })
   }
 
+  const toggleSeleccionarTodas = () => {
+    if (seleccionadas.size === maquinas.length && maquinas.length > 0) {
+      setSeleccionadas(new Set())
+    } else {
+      setSeleccionadas(new Set(maquinas.map(m => m.id)))
+    }
+  }
+
   const maquinasSeleccionadas = maquinas.filter(m => seleccionadas.has(m.id))
+
+  const handleImprimirPlanilla = () => {
+    if (seleccionadas.size === 0) {
+      toast.error('Por favor tikea o selecciona al menos una máquina para imprimir la planilla.')
+      return
+    }
+    imprimirPlanillaMaquinaria(maquinasSeleccionadas)
+  }
 
   const handleImprimirTransporte = (datosTransporte) => {
     imprimirFormularioTransporte(maquinasSeleccionadas, datosTransporte)
@@ -645,8 +661,8 @@ export default function Maquinaria() {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <button onClick={() => imprimirPlanillaMaquinaria(maquinas)} className="btn-secondary btn-sm flex items-center gap-1.5">
-            <Printer size={14}/> Imprimir Planilla
+          <button onClick={handleImprimirPlanilla} className="btn-secondary btn-sm flex items-center gap-1.5">
+            <Printer size={14}/> Imprimir Planilla {seleccionadas.size > 0 ? `(${seleccionadas.size})` : ''}
           </button>
           {seleccionadas.size > 0 && (
             <button onClick={() => setModalTransporte(true)} className="btn-primary btn-sm">
@@ -666,7 +682,11 @@ export default function Maquinaria() {
           <div className="overflow-x-auto">
             <table className="table-auto w-full min-w-[750px]">
               <thead><tr>
-                <th className="th w-10"></th>
+                <th className="th w-10">
+                  <button onClick={toggleSeleccionarTodas} className="text-primary hover:scale-105 transition-transform" title="Seleccionar todas / Deseleccionar todas">
+                    {seleccionadas.size > 0 && seleccionadas.size === maquinas.length ? <CheckSquare size={18}/> : <Square size={18} className="text-gray-300"/>}
+                  </button>
+                </th>
                 <th className="th w-14">Foto</th>
                 <th className="th">Nombre (ES)</th>
                 <th className="th">中文名称</th>
