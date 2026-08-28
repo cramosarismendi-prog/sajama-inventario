@@ -114,9 +114,11 @@ function FormAduana({ registro, onGuardar, onCancelar }) {
   const [refBL,       setRefBL]       = useState(registro?.blReferencia || '')
   const [refFactura,  setRefFactura]  = useState(registro?.facturaReferencia || '')
   const [refLista,    setRefLista]    = useState(registro?.listaEmpaqueReferencia || '')
+  const [refDIM,      setRefDIM]      = useState(registro?.dimReferencia || '')
   const [archBL,      setArchBL]      = useState(null)
   const [archFactura, setArchFactura] = useState(null)
   const [archLista,   setArchLista]   = useState(null)
+  const [archDIM,     setArchDIM]     = useState(null)
   const [guardando,   setGuardando]   = useState(false)
   const [error,       setError]       = useState('')
 
@@ -131,8 +133,8 @@ function FormAduana({ registro, onGuardar, onCancelar }) {
       await onGuardar({
         descripcionMercaderia: descripcion.trim(),
         fecha,
-        refBL: refBL.trim(), refFactura: refFactura.trim(), refLista: refLista.trim(),
-        archBL, archFactura, archLista,
+        refBL: refBL.trim(), refFactura: refFactura.trim(), refLista: refLista.trim(), refDIM: refDIM.trim(),
+        archBL, archFactura, archLista, archDIM,
       })
     } finally {
       setGuardando(false)
@@ -163,6 +165,12 @@ function FormAduana({ registro, onGuardar, onCancelar }) {
         urlActual={registro?.listaEmpaqueUrl} nombreActual={registro?.listaEmpaqueNombre}
         archivoSeleccionado={archLista} onSeleccionar={setArchLista}
         valorTexto={refLista} onCambiarTexto={setRefLista}
+        placeholderTexto="Referencia (opcional)" />
+
+      <CampoArchivo label="DIM"
+        urlActual={registro?.dimUrl} nombreActual={registro?.dimNombre}
+        archivoSeleccionado={archDIM} onSeleccionar={setArchDIM}
+        valorTexto={refDIM} onCambiarTexto={setRefDIM}
         placeholderTexto="Referencia (opcional)" />
 
       <div>
@@ -212,6 +220,7 @@ export default function Aduana() {
         blReferencia: data.refBL || '',
         facturaReferencia: data.refFactura || '',
         listaEmpaqueReferencia: data.refLista || '',
+        dimReferencia: data.refDIM || '',
       }
 
       // Los PDFs se guardan como base64 directamente en el documento
@@ -227,6 +236,10 @@ export default function Aduana() {
       if (data.archLista) {
         payload.listaEmpaqueUrl = await leerArchivoComoBase64(data.archLista)
         payload.listaEmpaqueNombre = data.archLista.name
+      }
+      if (data.archDIM) {
+        payload.dimUrl = await leerArchivoComoBase64(data.archDIM)
+        payload.dimNombre = data.archDIM.name
       }
 
       if (esNuevo) {
@@ -303,7 +316,7 @@ export default function Aduana() {
           <div className="overflow-x-auto">
             <table className="table-auto w-full">
               <thead><tr>
-                {['Descripción de la mercadería','BL','Factura','Lista de empaque','Fecha','Registrado por', canEdit ? 'Acciones' : null].filter(Boolean).map(h => (
+                {['Descripción de la mercadería','BL','Factura','Lista de empaque','DIM','Fecha','Registrado por', canEdit ? 'Acciones' : null].filter(Boolean).map(h => (
                   <th key={h} className="th">{h}</th>
                 ))}
               </tr></thead>
@@ -316,6 +329,7 @@ export default function Aduana() {
                     <td className="td">{linkArchivo(r.blUrl, r.blReferencia)}</td>
                     <td className="td">{linkArchivo(r.facturaUrl, r.facturaReferencia)}</td>
                     <td className="td">{linkArchivo(r.listaEmpaqueUrl, r.listaEmpaqueReferencia)}</td>
+                    <td className="td">{linkArchivo(r.dimUrl, r.dimReferencia)}</td>
                     <td className="td text-xs text-gray-500">
                       {r.fecha ? format(new Date(r.fecha + 'T00:00:00'), 'dd/MM/yyyy') : '—'}
                     </td>
