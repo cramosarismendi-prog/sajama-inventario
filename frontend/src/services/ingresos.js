@@ -17,10 +17,19 @@ export const registrarIngreso = async (data, usuario, rol) => {
     estado: 'confirmado'
   })
   const itemRef = doc(db, 'inventario', data.itemId)
-  batch.update(itemRef, {
-    stock: increment(Number(data.cantidad)),
+  const cant = Number(data.cantidad) || 0
+
+  const itemUpdates = {
+    stock: increment(cant),
     actualizadoEn: serverTimestamp()
-  })
+  }
+
+  // Al realizar una Devolución, el stock disponible aumenta y las salidas totales disminuyen automáticamente
+  if (data.fuente === 'devolucion') {
+    itemUpdates.totalSalidas = increment(-cant)
+  }
+
+  batch.update(itemRef, itemUpdates)
   await batch.commit()
   await registrarAccion({
     usuario, rol, modulo: 'Ingresos', accion: 'CREAR',

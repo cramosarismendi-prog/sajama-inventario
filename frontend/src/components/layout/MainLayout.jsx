@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Menu, Package } from 'lucide-react'
+import { BannerTipoCambio } from '../ui/BannerTipoCambio'
 
 export function MainLayout() {
   const [collapsed, setCollapsed] = useState(false)
@@ -39,6 +40,10 @@ export function MainLayout() {
               </div>
               <span className="font-bold text-gray-900 text-sm">Sajama.SRL</span>
             </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <BannerTipoCambio />
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-3 sm:p-6">

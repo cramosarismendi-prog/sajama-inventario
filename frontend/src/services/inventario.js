@@ -1,17 +1,32 @@
 import {
   collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc,
-  query, orderBy, onSnapshot, serverTimestamp, increment, where
+  query, onSnapshot, serverTimestamp, increment, where
 } from 'firebase/firestore'
 import { db } from './firebase'
 import { registrarAccion } from './auditoria'
 
 const COL = 'inventario'
 
+export const sortInventarioByCodigo = (items) => {
+  return [...items].sort((a, b) => {
+    const numA = Number(a.codigo)
+    const numB = Number(b.codigo)
+    const isNumA = a.codigo !== null && a.codigo !== undefined && a.codigo !== '' && !isNaN(numA)
+    const isNumB = b.codigo !== null && b.codigo !== undefined && b.codigo !== '' && !isNaN(numB)
+
+    if (isNumA && isNumB) {
+      return numA - numB
+    }
+    return String(a.codigo || '').localeCompare(String(b.codigo || ''), undefined, { numeric: true, sensitivity: 'base' })
+  })
+}
+
 export const getItems = async (filtros = {}) => {
-  let q = query(collection(db, COL), orderBy('codigo'))
-  if (filtros.categoria) q = query(collection(db, COL), where('categoria', '==', filtros.categoria), orderBy('codigo'))
+  let q = query(collection(db, COL))
+  if (filtros.categoria) q = query(collection(db, COL), where('categoria', '==', filtros.categoria))
   const snap = await getDocs(q)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  const list = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return sortInventarioByCodigo(list)
 }
 
 export const getItem = async (id) => {
@@ -60,6 +75,9 @@ export const eliminarItem = async (id, item, usuario, rol) => {
 }
 
 export const suscribirInventario = (callback) => {
-  const q = query(collection(db, COL), orderBy('codigo'))
-  return onSnapshot(q, snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
+  const q = query(collection(db, COL))
+  return onSnapshot(q, snap => {
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    callback(sortInventarioByCodigo(list))
+  })
 }

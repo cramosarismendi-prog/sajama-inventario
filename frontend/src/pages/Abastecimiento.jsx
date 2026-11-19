@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   collection, query, orderBy, onSnapshot, doc,
   setDoc, runTransaction, deleteDoc, serverTimestamp
@@ -11,7 +12,7 @@ import { Modal } from '../components/ui/Modal'
 import { Confirm } from '../components/ui/Confirm'
 import {
   Fuel, Plus, ArrowDownLeft, ArrowUpRight, Search, Printer,
-  Trash2, Filter, Droplet, Truck, FileText, CheckCircle2, AlertCircle
+  Trash2, Edit2, Filter, Droplet, Truck, FileText, CheckCircle2, AlertCircle
 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -97,7 +98,7 @@ td { border:1px solid #777; padding:4px 6px; }
 
 <script>
 window.onload = () => { setTimeout(() => window.print(), 300); };
-<\/script>
+</script>
 </body></html>`
 
   const w = window.open('', '_blank', 'width=1100,height=800')
@@ -186,7 +187,7 @@ td { border:1px solid #777; padding:4px 6px; }
 
 <script>
 window.onload = () => { setTimeout(() => window.print(), 300); };
-<\/script>
+</script>
 </body></html>`
 
   const w = window.open('', '_blank', 'width=1100,height=800')
@@ -216,8 +217,8 @@ body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:
 .label { font-size:7.5pt; color:#555; font-weight:bold; display:block; text-transform:uppercase; }
 .val { font-size:10pt; color:#000; font-weight:bold; margin-top:2px; }
 
-.firmas { display:grid; grid-template-columns:1fr 1fr; gap:30px; margin-top:35px; text-align:center; }
-.linea-firma { border-top:1px solid #444; pt:4px; font-size:8.5pt; font-weight:bold; }
+.firmas { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; margin-top:35px; text-align:center; }
+.linea-firma { border-top:1px solid #444; pt:4px; font-size:8pt; font-weight:bold; }
 
 @page { size:A4 landscape; margin:8mm; }
 @media print { body { padding:0; } }
@@ -271,18 +272,22 @@ body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:
   <div class="firmas">
     <div>
       <div style="height:35px"></div>
-      <div class="linea-firma">Firma de Quien Entrega (Despachador)<br/><span style="font-weight:normal;font-size:7.5pt">${despacho.creadoPor || 'SAJAMA'}</span></div>
+      <div class="linea-firma">Firma Quien Entrega (Despachador)<br/><span style="font-weight:normal;font-size:7.5pt">${despacho.creadoPor || 'SAJAMA'}</span></div>
     </div>
     <div>
       <div style="height:35px"></div>
-      <div class="linea-firma">Firma y Nombre del Conductor / Receptor<br/><span style="font-weight:normal;font-size:7.5pt">${despacho.responsable || 'Conductor / Cliente'}</span></div>
+      <div class="linea-firma">Firma y Nombre Conductor / Receptor<br/><span style="font-weight:normal;font-size:7.5pt">${despacho.responsable || 'Conductor / Cliente'}</span></div>
+    </div>
+    <div>
+      <div style="height:35px"></div>
+      <div class="linea-firma">Aprobación y Firma de Gerencia<br/><span style="font-weight:normal;font-size:7.5pt">Gerencia General / SAJAMA</span></div>
     </div>
   </div>
 </div>
 
 <script>
 window.onload = () => { setTimeout(() => window.print(), 300); };
-<\/script>
+</script>
 </body></html>`
 
   const w = window.open('', '_blank', 'width=950,height=750')
@@ -291,6 +296,8 @@ window.onload = () => { setTimeout(() => window.print(), 300); };
 }
 
 export default function Abastecimiento() {
+  const { t, i18n } = useTranslation()
+  const isZh = i18n.language === 'zh'
   const { perfil } = useAuth()
   const [saldos, setSaldos] = useState({ gasolina: 0, diesel: 0 })
   const [entradas, setEntradas] = useState([])
@@ -301,6 +308,8 @@ export default function Abastecimiento() {
   // Modales
   const [modalEntrada, setModalEntrada] = useState(false)
   const [modalSalida, setModalSalida] = useState(false)
+  const [editandoEntrada, setEditandoEntrada] = useState(null)
+  const [editandoSalida, setEditandoSalida] = useState(null)
   const [delEntrada, setDelEntrada] = useState(null)
   const [delSalida, setDelSalida] = useState(null)
   const [guardando, setGuardando] = useState(false)
@@ -440,6 +449,7 @@ export default function Abastecimiento() {
 
   // Cierre y Reset Form Entrada
   const resetFormEntrada = () => {
+    setEditandoEntrada(null)
     setFormEntrada({
       combustible: 'Gasolina', cantidad: '', responsable: '',
       proveedor: '', precioUnitario: '', precioTotal: '',
@@ -447,7 +457,23 @@ export default function Abastecimiento() {
     })
   }
 
-  // Guardar Entrada (Compra) con Transacción Atómica de Stock (+ Suma)
+  // Abrir Modal Edición de Entrada
+  const abrirEditarEntrada = (e) => {
+    setEditandoEntrada(e)
+    setFormEntrada({
+      combustible: e.combustible || 'Gasolina',
+      cantidad: e.cantidad ? String(e.cantidad) : '',
+      responsable: e.responsable || '',
+      proveedor: e.proveedor || '',
+      precioUnitario: e.precioUnitario ? String(e.precioUnitario) : '',
+      precioTotal: e.precioTotal ? String(e.precioTotal) : '',
+      fecha: e.fecha || format(new Date(), 'yyyy-MM-dd'),
+      observaciones: e.observaciones || ''
+    })
+    setModalEntrada(true)
+  }
+
+  // Guardar o Actualizar Entrada (Compra) con Transacción Atómica de Stock
   const handleGuardarEntrada = async (e) => {
     e.preventDefault()
     const qty = parseFloat(formEntrada.cantidad)
@@ -456,17 +482,35 @@ export default function Abastecimiento() {
 
     setGuardando(true)
     try {
-      const docEntradaRef = doc(collection(db, 'abastecimiento_entradas'))
+      const isEdit = !!editandoEntrada?.id
+      const docEntradaRef = isEdit ? doc(db, 'abastecimiento_entradas', editandoEntrada.id) : doc(collection(db, 'abastecimiento_entradas'))
       const saldoRef = doc(db, 'abastecimiento_saldos', 'combustibles')
-      const campoComb = formEntrada.combustible === 'Gasolina' ? 'gasolina' : 'diesel'
 
       await runTransaction(db, async (transaction) => {
         const saldoDoc = await transaction.get(saldoRef)
-        const currentStock = saldoDoc.exists() ? (Number(saldoDoc.data()[campoComb]) || 0) : 0
-        const newStock = currentStock + qty
+        const currentSaldos = saldoDoc.exists() ? saldoDoc.data() : { gasolina: 0, diesel: 0 }
 
-        transaction.set(saldoRef, { [campoComb]: newStock, ultimaActualizacion: serverTimestamp() }, { merge: true })
-        transaction.set(docEntradaRef, {
+        let currentGas = Number(currentSaldos.gasolina) || 0
+        let currentDiesel = Number(currentSaldos.diesel) || 0
+
+        if (isEdit) {
+          // Revertir entrada anterior
+          const oldQty = Number(editandoEntrada.cantidad) || 0
+          if (editandoEntrada.combustible === 'Gasolina') {
+            currentGas = Math.max(0, currentGas - oldQty)
+          } else {
+            currentDiesel = Math.max(0, currentDiesel - oldQty)
+          }
+        }
+
+        // Aplicar nueva entrada
+        if (formEntrada.combustible === 'Gasolina') {
+          currentGas += qty
+        } else {
+          currentDiesel += qty
+        }
+
+        const updatedPayload = {
           combustible: formEntrada.combustible,
           cantidad: qty,
           responsable: formEntrada.responsable.trim(),
@@ -475,23 +519,31 @@ export default function Abastecimiento() {
           precioTotal: parseFloat(formEntrada.precioTotal) || 0,
           fecha: formEntrada.fecha,
           observaciones: formEntrada.observaciones.trim(),
-          stockPosterior: newStock,
-          creadoPor: perfil?.nombre || 'Sistema',
-          creadoEn: serverTimestamp()
-        })
+          actualizadoPor: perfil?.nombre || 'Sistema',
+          actualizadoEn: serverTimestamp()
+        }
+
+        if (!isEdit) {
+          updatedPayload.creadoPor = perfil?.nombre || 'Sistema'
+          updatedPayload.creadoEn = serverTimestamp()
+        }
+
+        transaction.set(saldoRef, { gasolina: currentGas, diesel: currentDiesel, ultimaActualizacion: serverTimestamp() }, { merge: true })
+        transaction.set(docEntradaRef, updatedPayload, { merge: true })
       })
 
       await registrarAccion({
         usuario: perfil?.nombre, rol: perfil?.rol, modulo: 'Abastecimiento',
-        accion: 'CREAR_ENTRADA', detalle: `Registró compra de ${qty}L de ${formEntrada.combustible} (Resp: ${formEntrada.responsable})`
+        accion: isEdit ? 'EDITAR_ENTRADA' : 'CREAR_ENTRADA',
+        detalle: `${isEdit ? 'Editó' : 'Registró'} compra de ${qty}L de ${formEntrada.combustible} (Resp: ${formEntrada.responsable})`
       })
 
-      toast.success(`Entrada de ${qty} Litros de ${formEntrada.combustible} registrada correctamente`)
+      toast.success(`Entrada de ${qty} Litros de ${formEntrada.combustible} ${isEdit ? 'actualizada' : 'registrada'} correctamente`)
       setModalEntrada(false)
       resetFormEntrada()
     } catch (err) {
       console.error(err)
-      toast.error('Error al registrar entrada: ' + err.message)
+      toast.error('Error al guardar entrada: ' + err.message)
     } finally {
       setGuardando(false)
     }
@@ -520,6 +572,7 @@ export default function Abastecimiento() {
 
   // Cierre y Reset Form Salida
   const resetFormSalida = () => {
+    setEditandoSalida(null)
     setFormSalida({
       combustible: 'Gasolina', cantidad: '', seriePlaca: '', nroMovil: '',
       precioUnitario: '', precioTotal: '', destino: '', responsable: '',
@@ -527,7 +580,25 @@ export default function Abastecimiento() {
     })
   }
 
-  // Guardar Salida (Despacho) con Transacción Atómica de Stock (- Resta)
+  // Abrir Modal Edición de Salida (Despacho)
+  const abrirEditarSalida = (s) => {
+    setEditandoSalida(s)
+    setFormSalida({
+      combustible: s.combustible || 'Gasolina',
+      cantidad: s.cantidad ? String(s.cantidad) : '',
+      seriePlaca: s.seriePlaca || '',
+      nroMovil: s.nroMovil || '',
+      precioUnitario: s.precioUnitario ? String(s.precioUnitario) : '',
+      precioTotal: s.precioTotal ? String(s.precioTotal) : '',
+      destino: s.destino || '',
+      responsable: s.responsable || '',
+      fecha: s.fecha || format(new Date(), 'yyyy-MM-dd'),
+      observaciones: s.observaciones || ''
+    })
+    setModalSalida(true)
+  }
+
+  // Guardar o Actualizar Salida (Despacho) con Transacción Atómica de Stock
   const handleGuardarSalida = async (e) => {
     e.preventDefault()
     const qty = parseFloat(formSalida.cantidad)
@@ -537,22 +608,41 @@ export default function Abastecimiento() {
 
     setGuardando(true)
     try {
-      const docSalidaRef = doc(collection(db, 'abastecimiento_salidas'))
+      const isEdit = !!editandoSalida?.id
+      const docSalidaRef = isEdit ? doc(db, 'abastecimiento_salidas', editandoSalida.id) : doc(collection(db, 'abastecimiento_salidas'))
       const saldoRef = doc(db, 'abastecimiento_saldos', 'combustibles')
-      const campoComb = formSalida.combustible === 'Gasolina' ? 'gasolina' : 'diesel'
 
       await runTransaction(db, async (transaction) => {
         const saldoDoc = await transaction.get(saldoRef)
-        const currentStock = saldoDoc.exists() ? (Number(saldoDoc.data()[campoComb]) || 0) : 0
+        const currentSaldos = saldoDoc.exists() ? saldoDoc.data() : { gasolina: 0, diesel: 0 }
 
-        if (qty > currentStock) {
-          throw new Error(`Stock insuficiente de ${formSalida.combustible}. Stock actual: ${currentStock} L`)
+        let currentGas = Number(currentSaldos.gasolina) || 0
+        let currentDiesel = Number(currentSaldos.diesel) || 0
+
+        if (isEdit) {
+          // Devolver el despacho anterior al stock para recalcular stock disponible correctamente
+          const oldQty = Number(editandoSalida.cantidad) || 0
+          if (editandoSalida.combustible === 'Gasolina') {
+            currentGas += oldQty
+          } else {
+            currentDiesel += oldQty
+          }
         }
 
-        const newStock = currentStock - qty
+        // Verificar si hay stock suficiente para el nuevo despacho
+        const availableStock = formSalida.combustible === 'Gasolina' ? currentGas : currentDiesel
+        if (qty > availableStock) {
+          throw new Error(`Stock insuficiente de ${formSalida.combustible}. Stock disponible: ${availableStock} L`)
+        }
 
-        transaction.set(saldoRef, { [campoComb]: newStock, ultimaActualizacion: serverTimestamp() }, { merge: true })
-        transaction.set(docSalidaRef, {
+        // Descontar la nueva cantidad despachada
+        if (formSalida.combustible === 'Gasolina') {
+          currentGas -= qty
+        } else {
+          currentDiesel -= qty
+        }
+
+        const updatedPayload = {
           combustible: formSalida.combustible,
           cantidad: qty,
           seriePlaca: formSalida.seriePlaca.trim(),
@@ -563,18 +653,26 @@ export default function Abastecimiento() {
           responsable: formSalida.responsable.trim(),
           fecha: formSalida.fecha,
           observaciones: formSalida.observaciones.trim(),
-          stockPosterior: newStock,
-          creadoPor: perfil?.nombre || 'Sistema',
-          creadoEn: serverTimestamp()
-        })
+          actualizadoPor: perfil?.nombre || 'Sistema',
+          actualizadoEn: serverTimestamp()
+        }
+
+        if (!isEdit) {
+          updatedPayload.creadoPor = perfil?.nombre || 'Sistema'
+          updatedPayload.creadoEn = serverTimestamp()
+        }
+
+        transaction.set(saldoRef, { gasolina: currentGas, diesel: currentDiesel, ultimaActualizacion: serverTimestamp() }, { merge: true })
+        transaction.set(docSalidaRef, updatedPayload, { merge: true })
       })
 
       await registrarAccion({
         usuario: perfil?.nombre, rol: perfil?.rol, modulo: 'Abastecimiento',
-        accion: 'CREAR_SALIDA', detalle: `Despachó ${qty}L de ${formSalida.combustible} a ${formSalida.seriePlaca} (${formSalida.nroMovil})`
+        accion: isEdit ? 'EDITAR_SALIDA' : 'CREAR_SALIDA',
+        detalle: `${isEdit ? 'Editó' : 'Despachó'} ${qty}L de ${formSalida.combustible} a ${formSalida.seriePlaca} (${formSalida.nroMovil})`
       })
 
-      toast.success(`Despacho de ${qty} Litros registrado correctamente`)
+      toast.success(`Despacho de ${qty} Litros ${isEdit ? 'actualizado' : 'registrado'} correctamente`)
       setModalSalida(false)
       resetFormSalida()
     } catch (err) {
@@ -585,32 +683,77 @@ export default function Abastecimiento() {
     }
   }
 
-  // Eliminar Entrada
+  // Efecto de auditoría y recálculo automático de saldos reales de combustible
+  useEffect(() => {
+    if (loading) return
+    const totGasIn = entradas.filter(e => e.combustible === 'Gasolina').reduce((a, b) => a + (Number(b.cantidad) || 0), 0)
+    const totGasOut = salidas.filter(s => s.combustible === 'Gasolina').reduce((a, b) => a + (Number(b.cantidad) || 0), 0)
+    const calcGas = Math.max(0, totGasIn - totGasOut)
+
+    const totDieselIn = entradas.filter(e => e.combustible !== 'Gasolina').reduce((a, b) => a + (Number(b.cantidad) || 0), 0)
+    const totDieselOut = salidas.filter(s => s.combustible !== 'Gasolina').reduce((a, b) => a + (Number(b.cantidad) || 0), 0)
+    const calcDiesel = Math.max(0, totDieselIn - totDieselOut)
+
+    if (calcGas !== saldos.gasolina || calcDiesel !== saldos.diesel) {
+      setSaldos({ gasolina: calcGas, diesel: calcDiesel })
+      const saldoRef = doc(db, 'abastecimiento_saldos', 'combustibles')
+      setDoc(saldoRef, { gasolina: calcGas, diesel: calcDiesel, ultimaActualizacion: serverTimestamp() }, { merge: true })
+        .catch(err => console.error('Error sincronizando saldos:', err))
+    }
+  }, [entradas, salidas, loading])
+
+  // Eliminar Entrada con reversión atómica de stock (- Resta)
   const handleEliminarEntrada = async () => {
     if (!delEntrada) return
     try {
-      await deleteDoc(doc(db, 'abastecimiento_entradas', delEntrada.id))
+      const qty = Number(delEntrada.cantidad) || 0
+      const campoComb = delEntrada.combustible === 'Gasolina' ? 'gasolina' : 'diesel'
+      const saldoRef = doc(db, 'abastecimiento_saldos', 'combustibles')
+      const docRef = doc(db, 'abastecimiento_entradas', delEntrada.id)
+
+      await runTransaction(db, async (transaction) => {
+        const saldoDoc = await transaction.get(saldoRef)
+        const currentStock = saldoDoc.exists() ? (Number(saldoDoc.data()[campoComb]) || 0) : 0
+        const newStock = Math.max(0, currentStock - qty)
+
+        transaction.set(saldoRef, { [campoComb]: newStock, ultimaActualizacion: serverTimestamp() }, { merge: true })
+        transaction.delete(docRef)
+      })
+
       await registrarAccion({
         usuario: perfil?.nombre, rol: perfil?.rol, modulo: 'Abastecimiento',
-        accion: 'ELIMINAR_ENTRADA', detalle: `Eliminó entrada de ${delEntrada.cantidad}L ${delEntrada.combustible}`
+        accion: 'ELIMINAR_ENTRADA', detalle: `Eliminó entrada de ${qty}L ${delEntrada.combustible} y descontó del stock`
       })
-      toast.success('Registro de entrada eliminado')
+      toast.success('Registro de entrada eliminado y stock ajustado')
       setDelEntrada(null)
     } catch (err) {
       toast.error('Error al eliminar: ' + err.message)
     }
   }
 
-  // Eliminar Salida
+  // Eliminar Salida con devolución/reversión atómica de stock (+ Suma)
   const handleEliminarSalida = async () => {
     if (!delSalida) return
     try {
-      await deleteDoc(doc(db, 'abastecimiento_salidas', delSalida.id))
+      const qty = Number(delSalida.cantidad) || 0
+      const campoComb = delSalida.combustible === 'Gasolina' ? 'gasolina' : 'diesel'
+      const saldoRef = doc(db, 'abastecimiento_saldos', 'combustibles')
+      const docRef = doc(db, 'abastecimiento_salidas', delSalida.id)
+
+      await runTransaction(db, async (transaction) => {
+        const saldoDoc = await transaction.get(saldoRef)
+        const currentStock = saldoDoc.exists() ? (Number(saldoDoc.data()[campoComb]) || 0) : 0
+        const newStock = currentStock + qty
+
+        transaction.set(saldoRef, { [campoComb]: newStock, ultimaActualizacion: serverTimestamp() }, { merge: true })
+        transaction.delete(docRef)
+      })
+
       await registrarAccion({
         usuario: perfil?.nombre, rol: perfil?.rol, modulo: 'Abastecimiento',
-        accion: 'ELIMINAR_SALIDA', detalle: `Eliminó despacho de ${delSalida.cantidad}L ${delSalida.combustible}`
+        accion: 'ELIMINAR_SALIDA', detalle: `Eliminó despacho de ${qty}L ${delSalida.combustible} y devolvió stock`
       })
-      toast.success('Registro de despacho eliminado')
+      toast.success('Registro de despacho eliminado y stock devuelto')
       setDelSalida(null)
     } catch (err) {
       toast.error('Error al eliminar: ' + err.message)
@@ -651,20 +794,20 @@ export default function Abastecimiento() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
-            <Fuel size={28} className="text-primary"/> Abastecimiento y Despacho
+            <Fuel size={28} className="text-primary"/> {isZh ? '燃油供应与派送' : 'Abastecimiento y Despacho'}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Control de inventario, compras de combustible y vales de despacho a maquinaria/vehículos
+            {isZh ? '柴油/汽油燃料库存管控及自卸车加油调度' : 'Control de inventario, compras de combustible y vales de despacho a maquinaria/vehículos'}
           </p>
         </div>
 
         {canEdit && (
           <div className="flex items-center gap-2">
             <button onClick={() => { resetFormEntrada(); setModalEntrada(true) }} className="btn-secondary flex items-center gap-1.5 text-xs sm:text-sm">
-              <Plus size={16} className="text-emerald-600"/> <ArrowDownLeft size={16} className="text-emerald-600"/> Registrar Entrada (Compra)
+              <Plus size={16} className="text-emerald-600"/> <ArrowDownLeft size={16} className="text-emerald-600"/> {isZh ? '登记采购入库' : 'Registrar Entrada (Compra)'}
             </button>
             <button onClick={() => { resetFormSalida(); setModalSalida(true) }} className="btn-primary flex items-center gap-1.5 text-xs sm:text-sm">
-              <Plus size={16}/> <ArrowUpRight size={16}/> Registrar Despacho (Salida)
+              <Plus size={16}/> <ArrowUpRight size={16}/> {isZh ? '登记加油派送 (出库)' : 'Registrar Despacho (Salida)'}
             </button>
           </div>
         )}
@@ -675,14 +818,14 @@ export default function Abastecimiento() {
         {/* Card Gasolina */}
         <div className="card p-4 border-l-4 border-l-sky-500 flex items-center justify-between shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Stock Gasolina</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{isZh ? '汽油库存' : 'Stock Gasolina'}</p>
             <h3 className="text-2xl font-black text-sky-950 mt-1">
-              {(saldos.gasolina || 0).toLocaleString()} <span className="text-sm font-bold text-sky-700">Litros</span>
+              {(saldos.gasolina || 0).toLocaleString()} <span className="text-sm font-bold text-sky-700">{isZh ? '升' : 'Litros'}</span>
             </h3>
             <span className={`inline-block mt-2 px-2 py-0.5 rounded-full text-[11px] font-bold ${
               (saldos.gasolina || 0) > 500 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
             }`}>
-              {(saldos.gasolina || 0) > 500 ? 'Stock Suficiente' : 'Stock Bajo'}
+              {(saldos.gasolina || 0) > 500 ? (isZh ? '库存充足' : 'Stock Suficiente') : (isZh ? '库存不足' : 'Stock Bajo')}
             </span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-sky-50 flex items-center justify-center text-sky-600">
@@ -693,14 +836,14 @@ export default function Abastecimiento() {
         {/* Card Diésel */}
         <div className="card p-4 border-l-4 border-l-amber-500 flex items-center justify-between shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Stock Diésel</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{isZh ? '柴油库存' : 'Stock Diésel'}</p>
             <h3 className="text-2xl font-black text-amber-950 mt-1">
-              {(saldos.diesel || 0).toLocaleString()} <span className="text-sm font-bold text-amber-700">Litros</span>
+              {(saldos.diesel || 0).toLocaleString()} <span className="text-sm font-bold text-amber-700">{isZh ? '升' : 'Litros'}</span>
             </h3>
             <span className={`inline-block mt-2 px-2 py-0.5 rounded-full text-[11px] font-bold ${
               (saldos.diesel || 0) > 500 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
             }`}>
-              {(saldos.diesel || 0) > 500 ? 'Stock Suficiente' : 'Stock Bajo'}
+              {(saldos.diesel || 0) > 500 ? (isZh ? '库存充足' : 'Stock Suficiente') : (isZh ? '库存不足' : 'Stock Bajo')}
             </span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
@@ -711,12 +854,12 @@ export default function Abastecimiento() {
         {/* Card Histórico Entradas */}
         <div className="card p-4 border-l-4 border-l-emerald-500 flex items-center justify-between shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Comprado (Entradas)</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{isZh ? '累计采购 (入库)' : 'Total Comprado (Entradas)'}</p>
             <h3 className="text-xl font-bold text-gray-800 mt-1">
-              {entradas.length} <span className="text-xs text-gray-500 font-normal">compras</span>
+              {entradas.length} <span className="text-xs text-gray-500 font-normal">{isZh ? '笔采购' : 'compras'}</span>
             </h3>
             <p className="text-xs text-emerald-600 font-medium mt-1">
-              + {entradas.reduce((a, b) => a + (Number(b.cantidad) || 0), 0).toLocaleString()} L ingresados
+              + {entradas.reduce((a, b) => a + (Number(b.cantidad) || 0), 0).toLocaleString()} {isZh ? '升已入库' : 'L ingresados'}
             </p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
@@ -727,12 +870,12 @@ export default function Abastecimiento() {
         {/* Card Histórico Salidas */}
         <div className="card p-4 border-l-4 border-l-indigo-500 flex items-center justify-between shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Despachado (Salidas)</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{isZh ? '累计派送 (出库)' : 'Total Despachado (Salidas)'}</p>
             <h3 className="text-xl font-bold text-gray-800 mt-1">
-              {salidas.length} <span className="text-xs text-gray-500 font-normal">despachos</span>
+              {salidas.length} <span className="text-xs text-gray-500 font-normal">{isZh ? '次派送' : 'despachos'}</span>
             </h3>
             <p className="text-xs text-indigo-600 font-medium mt-1">
-              - {salidas.reduce((a, b) => a + (Number(b.cantidad) || 0), 0).toLocaleString()} L despachados
+              - {salidas.reduce((a, b) => a + (Number(b.cantidad) || 0), 0).toLocaleString()} {isZh ? '升已派送' : 'L despachados'}
             </p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
@@ -749,7 +892,7 @@ export default function Abastecimiento() {
             tab === 'resumen' ? 'bg-white text-gray-900 shadow-sm font-bold' : 'text-gray-600 hover:text-gray-900'
           }`}
         >
-          📊 Resumen y Saldos
+          {isZh ? '📊 概览与余量' : '📊 Resumen y Saldos'}
         </button>
         <button
           onClick={() => setTab('entradas')}
@@ -757,7 +900,7 @@ export default function Abastecimiento() {
             tab === 'entradas' ? 'bg-white text-emerald-700 shadow-sm font-bold' : 'text-gray-600 hover:text-gray-900'
           }`}
         >
-          📥 Historial de Entradas ({entradas.length})
+          {isZh ? `📥 采购入库记录 (${entradas.length})` : `📥 Historial de Entradas (${entradas.length})`}
         </button>
         <button
           onClick={() => setTab('salidas')}
@@ -765,7 +908,7 @@ export default function Abastecimiento() {
             tab === 'salidas' ? 'bg-white text-primary shadow-sm font-bold' : 'text-gray-600 hover:text-gray-900'
           }`}
         >
-          📤 Historial de Despachos ({salidas.length})
+          {isZh ? `📤 加油派送记录 (${salidas.length})` : `📤 Historial de Despachos (${salidas.length})`}
         </button>
       </div>
 
@@ -778,8 +921,8 @@ export default function Abastecimiento() {
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-bold">⛽</div>
                 <div>
-                  <h3 className="font-bold text-gray-900">Tanque de Gasolina</h3>
-                  <p className="text-xs text-gray-500">Unidad de medida: Litros (L)</p>
+                  <h3 className="font-bold text-gray-900">{isZh ? '汽油储罐' : 'Tanque de Gasolina'}</h3>
+                  <p className="text-xs text-gray-500">{isZh ? '计量单位: 升 (L)' : 'Unidad de medida: Litros (L)'}</p>
                 </div>
               </div>
               <span className="text-xl font-black text-sky-700">{(saldos.gasolina || 0).toLocaleString()} L</span>
@@ -787,13 +930,13 @@ export default function Abastecimiento() {
 
             <div className="mt-4 space-y-2 text-sm text-gray-600">
               <div className="flex justify-between">
-                <span>Entradas acumuladas:</span>
+                <span>{isZh ? '累计入库:' : 'Entradas acumuladas:'}</span>
                 <span className="font-semibold text-emerald-700">
                   + {entradas.filter(e => e.combustible === 'Gasolina').reduce((a, b) => a + (Number(b.cantidad) || 0), 0).toLocaleString()} L
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Despachos acumulados:</span>
+                <span>{isZh ? '累计派送:' : 'Despachos acumulados:'}</span>
                 <span className="font-semibold text-red-600">
                   - {salidas.filter(s => s.combustible === 'Gasolina').reduce((a, b) => a + (Number(b.cantidad) || 0), 0).toLocaleString()} L
                 </span>
@@ -803,16 +946,16 @@ export default function Abastecimiento() {
             {canEdit && (
               <div className="mt-5 flex gap-2">
                 <button
-                  onClick={() => { setFormEntrada(prev => ({ ...prev, combustible: 'Gasolina' })); setModalEntrada(true) }}
+                  onClick={() => { resetFormEntrada(); setFormEntrada(prev => ({ ...prev, combustible: 'Gasolina' })); setModalEntrada(true) }}
                   className="btn-secondary btn-sm flex-1 text-xs"
                 >
-                  <Plus size={14}/> Cargar Gasolina
+                  <Plus size={14}/> {isZh ? '采购汽油' : 'Cargar Gasolina'}
                 </button>
                 <button
-                  onClick={() => { setFormSalida(prev => ({ ...prev, combustible: 'Gasolina' })); setModalSalida(true) }}
+                  onClick={() => { resetFormSalida(); setFormSalida(prev => ({ ...prev, combustible: 'Gasolina' })); setModalSalida(true) }}
                   className="btn-primary btn-sm flex-1 text-xs"
                 >
-                  <ArrowUpRight size={14}/> Despachar Gasolina
+                  <ArrowUpRight size={14}/> {isZh ? '派送汽油' : 'Despachar Gasolina'}
                 </button>
               </div>
             )}
@@ -824,8 +967,8 @@ export default function Abastecimiento() {
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">🚜</div>
                 <div>
-                  <h3 className="font-bold text-gray-900">Tanque de Diésel</h3>
-                  <p className="text-xs text-gray-500">Unidad de medida: Litros (L)</p>
+                  <h3 className="font-bold text-gray-900">{isZh ? '柴油储罐' : 'Tanque de Diésel'}</h3>
+                  <p className="text-xs text-gray-500">{isZh ? '计量单位: 升 (L)' : 'Unidad de medida: Litros (L)'}</p>
                 </div>
               </div>
               <span className="text-xl font-black text-amber-800">{(saldos.diesel || 0).toLocaleString()} L</span>
@@ -833,13 +976,13 @@ export default function Abastecimiento() {
 
             <div className="mt-4 space-y-2 text-sm text-gray-600">
               <div className="flex justify-between">
-                <span>Entradas acumuladas:</span>
+                <span>{isZh ? '累计入库:' : 'Entradas acumuladas:'}</span>
                 <span className="font-semibold text-emerald-700">
                   + {entradas.filter(e => e.combustible === 'Diésel' || e.combustible === 'Diesel').reduce((a, b) => a + (Number(b.cantidad) || 0), 0).toLocaleString()} L
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Despachos acumulados:</span>
+                <span>{isZh ? '累计派送:' : 'Despachos acumulados:'}</span>
                 <span className="font-semibold text-red-600">
                   - {salidas.filter(s => s.combustible === 'Diésel' || s.combustible === 'Diesel').reduce((a, b) => a + (Number(b.cantidad) || 0), 0).toLocaleString()} L
                 </span>
@@ -849,16 +992,16 @@ export default function Abastecimiento() {
             {canEdit && (
               <div className="mt-5 flex gap-2">
                 <button
-                  onClick={() => { setFormEntrada(prev => ({ ...prev, combustible: 'Diésel' })); setModalEntrada(true) }}
+                  onClick={() => { resetFormEntrada(); setFormEntrada(prev => ({ ...prev, combustible: 'Diésel' })); setModalEntrada(true) }}
                   className="btn-secondary btn-sm flex-1 text-xs"
                 >
-                  <Plus size={14}/> Cargar Diésel
+                  <Plus size={14}/> {isZh ? '采购柴油' : 'Cargar Diésel'}
                 </button>
                 <button
-                  onClick={() => { setFormSalida(prev => ({ ...prev, combustible: 'Diésel' })); setModalSalida(true) }}
+                  onClick={() => { resetFormSalida(); setFormSalida(prev => ({ ...prev, combustible: 'Diésel' })); setModalSalida(true) }}
                   className="btn-primary btn-sm flex-1 text-xs"
                 >
-                  <ArrowUpRight size={14}/> Despachar Diésel
+                  <ArrowUpRight size={14}/> {isZh ? '派送柴油' : 'Despachar Diésel'}
                 </button>
               </div>
             )}
@@ -874,14 +1017,14 @@ export default function Abastecimiento() {
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar por combustible, responsable, proveedor..."
+                placeholder={isZh ? '按燃料、经办人、供应商搜索...' : 'Buscar por combustible, responsable, proveedor...'}
                 value={busquedaEntrada}
                 onChange={e => setBusquedaEntrada(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
             <button onClick={() => imprimirPlanillaEntradas(entradasFiltradas)} className="btn-secondary flex items-center gap-1.5">
-              <Printer size={16}/> Imprimir Planilla de Entradas
+              <Printer size={16}/> {isZh ? '打印入库清单' : 'Imprimir Planilla de Entradas'}
             </button>
           </div>
 
@@ -890,20 +1033,20 @@ export default function Abastecimiento() {
               <table className="w-full text-left text-sm min-w-[750px]">
                 <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
                   <tr>
-                    <th className="py-3 px-4">Fecha</th>
-                    <th className="py-3 px-4">Combustible</th>
-                    <th className="py-3 px-4">Cantidad</th>
-                    <th className="py-3 px-4">Responsable Compra</th>
-                    <th className="py-3 px-4">Proveedor / Factura</th>
-                    <th className="py-3 px-4">Precio Total</th>
-                    <th className="py-3 px-4">Acciones</th>
+                    <th className="py-3 px-4">{isZh ? '日期' : 'Fecha'}</th>
+                    <th className="py-3 px-4">{isZh ? '燃料种类' : 'Combustible'}</th>
+                    <th className="py-3 px-4">{isZh ? '数量' : 'Cantidad'}</th>
+                    <th className="py-3 px-4">{isZh ? '采购经办人' : 'Responsable Compra'}</th>
+                    <th className="py-3 px-4">{isZh ? '供应商 / 发票' : 'Proveedor / Factura'}</th>
+                    <th className="py-3 px-4">{isZh ? '总价' : 'Precio Total'}</th>
+                    <th className="py-3 px-4 text-right">{isZh ? '操作' : 'Acciones'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {entradasFiltradas.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="text-center py-10 text-gray-400">
-                        No hay registros de compras / entradas de combustible
+                        {isZh ? '暂无燃油采购 / 入库记录' : 'No hay registros de compras / entradas de combustible'}
                       </td>
                     </tr>
                   ) : (
@@ -927,16 +1070,27 @@ export default function Abastecimiento() {
                           <td className="py-3 px-4 font-semibold text-gray-900">
                             {e.precioTotal ? `${Number(e.precioTotal).toLocaleString()} Bs` : '—'}
                           </td>
-                          <td className="py-3 px-4">
-                            {canDelete && (
-                              <button
-                                onClick={() => setDelEntrada(e)}
-                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Eliminar entrada"
-                              >
-                                <Trash2 size={16}/>
-                              </button>
-                            )}
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {canEdit && (
+                                <button
+                                  onClick={() => abrirEditarEntrada(e)}
+                                  className="p-1.5 text-gray-500 hover:text-primary hover:bg-primary-pale rounded-lg transition-colors"
+                                  title={isZh ? '编辑入库' : 'Editar entrada y ajustar stock'}
+                                >
+                                  <Edit2 size={16}/>
+                                </button>
+                              )}
+                              {canDelete && (
+                                <button
+                                  onClick={() => setDelEntrada(e)}
+                                  className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                  title={isZh ? '删除入库' : 'Eliminar entrada y descontar stock'}
+                                >
+                                  <Trash2 size={16}/>
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       )
@@ -957,14 +1111,14 @@ export default function Abastecimiento() {
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar por placa, móvil, combustible, destino..."
+                placeholder={isZh ? '按车牌、设备号、目的地搜索...' : 'Buscar por placa, móvil, combustible, destino...'}
                 value={busquedaSalida}
                 onChange={e => setBusquedaSalida(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
             <button onClick={() => imprimirPlanillaDespachos(salidasFiltradas)} className="btn-secondary flex items-center gap-1.5">
-              <Printer size={16}/> Imprimir Planilla de Despachos
+              <Printer size={16}/> {isZh ? '打印派送清单' : 'Imprimir Planilla de Despachos'}
             </button>
           </div>
 
@@ -973,21 +1127,21 @@ export default function Abastecimiento() {
               <table className="w-full text-left text-sm min-w-[850px]">
                 <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
                   <tr>
-                    <th className="py-3 px-4">Fecha</th>
-                    <th className="py-3 px-4">Combustible</th>
-                    <th className="py-3 px-4">Cantidad</th>
-                    <th className="py-3 px-4">Placa / Chasis</th>
-                    <th className="py-3 px-4">N° Móvil</th>
-                    <th className="py-3 px-4">Destino</th>
-                    <th className="py-3 px-4">Precio Total</th>
-                    <th className="py-3 px-4 text-right">Acciones</th>
+                    <th className="py-3 px-4">{isZh ? '日期' : 'Fecha'}</th>
+                    <th className="py-3 px-4">{isZh ? '燃料种类' : 'Combustible'}</th>
+                    <th className="py-3 px-4">{isZh ? '数量' : 'Cantidad'}</th>
+                    <th className="py-3 px-4">{isZh ? '车牌 / 底盘号' : 'Placa / Chasis'}</th>
+                    <th className="py-3 px-4">{isZh ? '设备编号' : 'N° Móvil'}</th>
+                    <th className="py-3 px-4">{isZh ? '目的地' : 'Destino'}</th>
+                    <th className="py-3 px-4">{isZh ? '总价' : 'Precio Total'}</th>
+                    <th className="py-3 px-4 text-right">{isZh ? '操作' : 'Acciones'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {salidasFiltradas.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="text-center py-10 text-gray-400">
-                        No hay registros de despachos / salidas de combustible
+                        {isZh ? '暂无燃油派送 / 出库记录' : 'No hay registros de despachos / salidas de combustible'}
                       </td>
                     </tr>
                   ) : (
@@ -1017,15 +1171,24 @@ export default function Abastecimiento() {
                               <button
                                 onClick={() => imprimirValeDespacho(s)}
                                 className="p-1.5 text-primary hover:bg-primary-pale rounded-lg transition-colors"
-                                title="Imprimir Vale de Despacho"
+                                title={isZh ? '打印派送凭证' : 'Imprimir Vale de Despacho'}
                               >
                                 <Printer size={16}/>
                               </button>
+                              {canEdit && (
+                                <button
+                                  onClick={() => abrirEditarSalida(s)}
+                                  className="p-1.5 text-gray-500 hover:text-primary hover:bg-primary-pale rounded-lg transition-colors"
+                                  title={isZh ? '编辑派送' : 'Editar despacho y ajustar stock'}
+                                >
+                                  <Edit2 size={16}/>
+                                </button>
+                              )}
                               {canDelete && (
                                 <button
                                   onClick={() => setDelSalida(s)}
                                   className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                  title="Eliminar registro"
+                                  title={isZh ? '删除派送' : 'Eliminar despacho y devolver stock'}
                                 >
                                   <Trash2 size={16}/>
                                 </button>
@@ -1043,12 +1206,12 @@ export default function Abastecimiento() {
         </div>
       )}
 
-      {/* MODAL 1: REGISTRAR ENTRADA (COMPRA) */}
-      <Modal open={modalEntrada} onClose={() => setModalEntrada(false)} title="Registrar Compra / Entrada de Combustible" size="md">
+      {/* MODAL 1: REGISTRAR O EDITAR ENTRADA (COMPRA) */}
+      <Modal open={modalEntrada} onClose={() => { setModalEntrada(false); resetFormEntrada() }} title={editandoEntrada ? (isZh ? '编辑采购入库' : 'Editar Compra / Entrada de Combustible') : (isZh ? '登记采购入库' : 'Registrar Compra / Entrada de Combustible')} size="md">
         <form onSubmit={handleGuardarEntrada} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Combustible *</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '燃料种类 *' : 'Combustible *'}</label>
               <select
                 value={formEntrada.combustible}
                 onChange={e => setFormEntrada({ ...formEntrada, combustible: e.target.value })}
@@ -1059,7 +1222,7 @@ export default function Abastecimiento() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Cantidad (Litros) *</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '数量 (升) *' : 'Cantidad (Litros) *'}</label>
               <input
                 type="number"
                 step="0.01"
@@ -1075,11 +1238,11 @@ export default function Abastecimiento() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Responsable de Compra *</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '采购经办人 *' : 'Responsable de Compra *'}</label>
               <input
                 type="text"
                 required
-                placeholder="Nombre del responsable"
+                placeholder={isZh ? '经办人姓名' : 'Nombre del responsable'}
                 value={formEntrada.responsable}
                 onChange={e => setFormEntrada({ ...formEntrada, responsable: e.target.value })}
                 className="input-field"
@@ -1087,10 +1250,10 @@ export default function Abastecimiento() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Proveedor / Factura</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '供应商 / 发票' : 'Proveedor / Factura'}</label>
               <input
                 type="text"
-                placeholder="Ej. YPFB / Fact. N° 4021"
+                placeholder={isZh ? '如: YPFB / 发票 4021' : 'Ej. YPFB / Fact. N° 4021'}
                 value={formEntrada.proveedor}
                 onChange={e => setFormEntrada({ ...formEntrada, proveedor: e.target.value })}
                 className="input-field"
@@ -1100,7 +1263,7 @@ export default function Abastecimiento() {
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Precio Unit. (Bs/L)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '单价 (Bs/升)' : 'Precio Unit. (Bs/L)'}</label>
               <input
                 type="number"
                 step="0.01"
@@ -1112,7 +1275,7 @@ export default function Abastecimiento() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Precio Total (Bs)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '总价 (Bs)' : 'Precio Total (Bs)'}</label>
               <input
                 type="number"
                 step="0.01"
@@ -1124,7 +1287,7 @@ export default function Abastecimiento() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Fecha *</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '日期 *' : 'Fecha *'}</label>
               <input
                 type="date"
                 required
@@ -1136,10 +1299,10 @@ export default function Abastecimiento() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Observaciones</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '备注' : 'Observaciones'}</label>
             <textarea
               rows={2}
-              placeholder="Detalles de la compra, lugar de recepcion..."
+              placeholder={isZh ? '采购详情、交货地点...' : 'Detalles de la compra, lugar de recepción...'}
               value={formEntrada.observaciones}
               onChange={e => setFormEntrada({ ...formEntrada, observaciones: e.target.value })}
               className="input-field"
@@ -1147,19 +1310,19 @@ export default function Abastecimiento() {
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
-            <button type="button" onClick={() => setModalEntrada(false)} className="btn-secondary">Cancelar</button>
+            <button type="button" onClick={() => { setModalEntrada(false); resetFormEntrada() }} className="btn-secondary">{isZh ? '取消' : 'Cancelar'}</button>
             <button type="submit" disabled={guardando} className="btn-primary">
-              {guardando ? 'Registrando...' : 'Registrar Compra / Entrada'}
+              {guardando ? (isZh ? '保存中...' : 'Guardando...') : (editandoEntrada ? (isZh ? '更新采购' : 'Actualizar Compra') : (isZh ? '保存入库' : 'Registrar Compra / Entrada'))}
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* MODAL 2: REGISTRAR SALIDA (DESPACHO) */}
-      <Modal open={modalSalida} onClose={() => setModalSalida(false)} title="Registrar Despacho de Combustible" size="md">
+      {/* MODAL 2: REGISTRAR O EDITAR SALIDA (DESPACHO) */}
+      <Modal open={modalSalida} onClose={() => { setModalSalida(false); resetFormSalida() }} title={editandoSalida ? (isZh ? '编辑加油派送' : 'Editar Despacho de Combustible') : (isZh ? '登记加油派送' : 'Registrar Despacho de Combustible')} size="md">
         <form onSubmit={handleGuardarSalida} className="space-y-4">
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 flex justify-between items-center">
-            <span>Stock disponible de {formSalida.combustible}:</span>
+            <span>{isZh ? `${formSalida.combustible} 可用库存:` : `Stock disponible de ${formSalida.combustible}:`}</span>
             <b className="text-sm text-amber-900">
               {formSalida.combustible === 'Gasolina' ? (saldos.gasolina || 0).toLocaleString() : (saldos.diesel || 0).toLocaleString()} L
             </b>
@@ -1167,7 +1330,7 @@ export default function Abastecimiento() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Combustible *</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '燃料种类 *' : 'Combustible *'}</label>
               <select
                 value={formSalida.combustible}
                 onChange={e => setFormSalida({ ...formSalida, combustible: e.target.value })}
@@ -1178,7 +1341,7 @@ export default function Abastecimiento() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Cantidad (Litros) *</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '数量 (升) *' : 'Cantidad (Litros) *'}</label>
               <input
                 type="number"
                 step="0.01"
@@ -1194,7 +1357,7 @@ export default function Abastecimiento() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Placa / Chasis *</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '车牌 / 底盘号 *' : 'Placa / Chasis *'}</label>
               <input
                 type="text"
                 required
@@ -1206,11 +1369,11 @@ export default function Abastecimiento() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">N° Móvil *</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '设备编号 *' : 'N° Móvil *'}</label>
               <input
                 type="text"
                 required
-                placeholder="Ej. Móvil 05 / Volqueta 12"
+                placeholder={isZh ? '如: 05号车 / 12号自卸车' : 'Ej. Móvil 05 / Volqueta 12'}
                 value={formSalida.nroMovil}
                 onChange={e => setFormSalida({ ...formSalida, nroMovil: e.target.value })}
                 className="input-field"
@@ -1220,11 +1383,11 @@ export default function Abastecimiento() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Destino *</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '目的地 *' : 'Destino *'}</label>
               <input
                 type="text"
                 required
-                placeholder="Ej. Mina Sajama / Obra Corocoro"
+                placeholder={isZh ? '如: Sajama 矿区' : 'Ej. Mina Sajama / Obra Corocoro'}
                 value={formSalida.destino}
                 onChange={e => setFormSalida({ ...formSalida, destino: e.target.value })}
                 className="input-field"
@@ -1232,10 +1395,10 @@ export default function Abastecimiento() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Responsable / Conductor</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '司机 / 经办人' : 'Responsable / Conductor'}</label>
               <input
                 type="text"
-                placeholder="Nombre del conductor"
+                placeholder={isZh ? '司机姓名' : 'Nombre del conductor'}
                 value={formSalida.responsable}
                 onChange={e => setFormSalida({ ...formSalida, responsable: e.target.value })}
                 className="input-field"
@@ -1245,7 +1408,7 @@ export default function Abastecimiento() {
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Precio Unit. (Bs/L)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '单价 (Bs/升)' : 'Precio Unit. (Bs/L)'}</label>
               <input
                 type="number"
                 step="0.01"
@@ -1257,7 +1420,7 @@ export default function Abastecimiento() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Precio Total (Bs)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '总价 (Bs)' : 'Precio Total (Bs)'}</label>
               <input
                 type="number"
                 step="0.01"
@@ -1269,7 +1432,7 @@ export default function Abastecimiento() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Fecha *</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '日期 *' : 'Fecha *'}</label>
               <input
                 type="date"
                 required
@@ -1281,10 +1444,10 @@ export default function Abastecimiento() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Observaciones</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1">{isZh ? '备注' : 'Observaciones'}</label>
             <textarea
               rows={2}
-              placeholder="Notas de entrega, estado de horómetro..."
+              placeholder={isZh ? '交接说明、工时计读数...' : 'Notas de entrega, estado de horómetro...'}
               value={formSalida.observaciones}
               onChange={e => setFormSalida({ ...formSalida, observaciones: e.target.value })}
               className="input-field"
@@ -1292,9 +1455,9 @@ export default function Abastecimiento() {
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
-            <button type="button" onClick={() => setModalSalida(false)} className="btn-secondary">Cancelar</button>
+            <button type="button" onClick={() => { setModalSalida(false); resetFormSalida() }} className="btn-secondary">{isZh ? '取消' : 'Cancelar'}</button>
             <button type="submit" disabled={guardando} className="btn-primary">
-              {guardando ? 'Despachando...' : 'Registrar Despacho'}
+              {guardando ? (isZh ? '保存中...' : 'Guardando...') : (editandoSalida ? (isZh ? '更新派送' : 'Actualizar Despacho') : (isZh ? '保存派送' : 'Registrar Despacho'))}
             </button>
           </div>
         </form>
@@ -1303,7 +1466,7 @@ export default function Abastecimiento() {
       {/* CONFIRM ELIMINAR ENTRADA */}
       <Confirm
         open={!!delEntrada}
-        mensaje={`¿Eliminar el registro de compra de ${delEntrada?.cantidad}L de ${delEntrada?.combustible}?`}
+        mensaje={isZh ? `确定删除 ${delEntrada?.cantidad} 升 ${delEntrada?.combustible} 的采购记录吗？` : `¿Eliminar el registro de compra de ${delEntrada?.cantidad}L de ${delEntrada?.combustible}?`}
         onConfirm={handleEliminarEntrada}
         onCancel={() => setDelEntrada(null)}
       />
@@ -1311,7 +1474,7 @@ export default function Abastecimiento() {
       {/* CONFIRM ELIMINAR SALIDA */}
       <Confirm
         open={!!delSalida}
-        mensaje={`¿Eliminar el registro de despacho de ${delSalida?.cantidad}L de ${delSalida?.combustible} a ${delSalida?.seriePlaca}?`}
+        mensaje={isZh ? `确定删除向 ${delSalida?.seriePlaca} 派送 ${delSalida?.cantidad} 升 ${delSalida?.combustible} 的记录吗？` : `¿Eliminar el registro de despacho de ${delSalida?.cantidad}L de ${delSalida?.combustible} a ${delSalida?.seriePlaca}?`}
         onConfirm={handleEliminarSalida}
         onCancel={() => setDelSalida(null)}
       />

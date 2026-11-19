@@ -2,29 +2,67 @@ import { useForm } from 'react-hook-form'
 import { useEffect, useRef, useState } from 'react'
 import { Image, MapPin, X, Loader2, Languages, Scan, PackageSearch } from 'lucide-react'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore'
+import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../../services/firebase'
 import { storage } from '../../services/firebase'
 import { traducirAlChino } from '../../services/traduccion'
 import { useScannerQR, parsearQR } from '../../hooks/useScannerQR'
 import toast from 'react-hot-toast'
 
-// Obtener el siguiente código correlativo disponible
-const obtenerSiguienteCodigo = async () => {
+// Obtener el siguiente código correlativo disponible revisando el valor numérico máximo guardado
+export const obtenerSiguienteCodigo = async () => {
   try {
-    const snap = await getDocs(query(collection(db, 'inventario'), orderBy('codigo', 'desc'), limit(1)))
-    if (snap.empty) return 1
-    const ultimo = snap.docs[0].data().codigo
-    const ultimoNum = Number(ultimo)
-    return isNaN(ultimoNum) ? 1 : ultimoNum + 1
-  } catch(e) {
-    return 1
+    const snap = await getDocs(collection(db, 'inventario'))
+    if (snap.empty) return '001'
+    let max = 0
+    let maxStrLen = 3
+    let hasLeadingZeros = false
+
+    snap.docs.forEach(doc => {
+      const c = doc.data().codigo
+      if (c !== undefined && c !== null && c !== '') {
+        const strVal = String(c).trim()
+        const num = parseInt(strVal, 10)
+        if (!isNaN(num) && num > max) {
+          max = num
+          if (strVal.startsWith('0') && strVal.length > 1) {
+            hasLeadingZeros = true
+            maxStrLen = strVal.length
+          } else {
+            maxStrLen = Math.max(maxStrLen, strVal.length)
+          }
+        }
+      }
+    })
+
+    const siguienteNum = max + 1
+    if (hasLeadingZeros && maxStrLen > 0) {
+      return String(siguienteNum).padStart(maxStrLen, '0')
+    }
+    return String(siguienteNum)
+  } catch (e) {
+    console.warn('Error al calcular siguiente codigo:', e)
+    return '001'
   }
 }
 
 const CATEGORIAS  = ['Maquinarias','Equipos','Repuestos','Materiales','Insumos']
+const EMPRESAS    = ['SAJAMA S.R.L.', 'RUNXINCORP S.R.L.', 'GOLDEN SHIELD S.R.L.', 'EMPRESA JIM ALEX', 'SUPERCADENA']
 const UNIDADES    = ['unidad','par','juego','litro','balde','caja','rollo','metro','kg','pieza']
-const UBICACIONES = ['Estante A','Estante B','Estante C','Bodega 1','Bodega 2','Piso','Otro']
+const UBICACIONES = [
+  'Estante A',
+  'Estante B',
+  'Estante C',
+  'Estante D',
+  'Estante E',
+  'Estante F',
+  'Estante G',
+  'Estante H',
+  'Bodega 1',
+  'Bodega 2',
+  'Piso',
+  'Otro'
+]
 
 export default function FormItem({ item, onGuardar, onCancelar }) {
   const { register, handleSubmit, reset, setValue, watch,
@@ -46,7 +84,6 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
     if (!parsed) { toast.error('QR no reconocido'); return }
 
     // El QR contiene: serie (ej: 11212087) y descripcion (ej: RETEN 130 X 120 X 7)
-    // El codigo correlativo se asigna automaticamente
     if (parsed.serie)       setValue('serie',       parsed.serie)
     if (parsed.descripcion) setValue('descripcion', parsed.descripcion)
 
@@ -54,8 +91,8 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
     const siguienteCodigo = await obtenerSiguienteCodigo()
     setValue('codigo', siguienteCodigo)
 
-    toast.success('QR leido: ' + parsed.descripcion + ' — Codigo asignado: ' + siguienteCodigo)
-    toast('Revisa y completa los campos restantes antes de guardar', { icon: 'i', duration: 3000 })
+    toast.success('QR leído: ' + parsed.descripcion + ' — Código asignado: ' + siguienteCodigo)
+    toast('Revisa y completa los campos restantes antes de guardar', { icon: 'ℹ️', duration: 3000 })
 
     // Autotraducir descripcion al chino
     if (parsed.descripcion && parsed.descripcion.length > 2) {
@@ -66,16 +103,33 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
       } finally { setTraduciendoD(false) }
     }
     desactivar()
-    // NO se guarda automaticamente - el usuario completa y hace clic en Crear item
   })
 
   useEffect(() => {
-    if (item) { reset(item); setFotoPreview(item.fotoUrl || null) }
-    else {
-      reset({ codigo:'', descripcion:'', descripcionZh:'', modelo:'',
-        serie:'', categoria:'Repuestos', unidad:'unidad', precio:'',
-        stockMin:5, stockInicial:0, ubicacion:'', notas:'' })
-      setFotoPreview(null); setFotoFile(null)
+    if (item) {
+      reset({ empresa: 'SAJAMA S.R.L.', ...item })
+      setFotoPreview(item.fotoUrl || null)
+    } else {
+      // Calcular automáticamente el código correlativo de forma inmediata al abrir el modal para nuevo ítem
+      obtenerSiguienteCodigo().then(siguienteCod => {
+        reset({
+          codigo: siguienteCod,
+          descripcion: '',
+          descripcionZh: '',
+          modelo: '',
+          serie: '',
+          categoria: 'Repuestos',
+          empresa: 'SAJAMA S.R.L.',
+          unidad: 'unidad',
+          precio: '',
+          stockMin: 5,
+          stockInicial: 0,
+          ubicacion: '',
+          notas: ''
+        })
+      })
+      setFotoPreview(null)
+      setFotoFile(null)
     }
   }, [item, reset])
 
@@ -95,7 +149,7 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
   const handleFoto = (e) => {
     const file = e.target.files[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) { alert('Maximo 5MB'); return }
+    if (file.size > 5 * 1024 * 1024) { alert('Máximo 5MB'); return }
     setFotoFile(file)
     setFotoPreview(URL.createObjectURL(file))
   }
@@ -136,7 +190,7 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
               {escuchando ? 'Scanner activo — escanea el QR del producto' : 'Autocompletar desde QR'}
             </p>
             <p className="text-xs text-gray-400">
-              {escuchando ? 'Codigo y descripcion se llenaran automaticamente' : 'Activa el scanner para leer el QR'}
+              {escuchando ? 'Código y descripción se llenarán automáticamente' : 'Activa el scanner para leer el QR'}
             </p>
           </div>
           <button type="button" onClick={escuchando ? desactivar : activar}
@@ -174,13 +228,13 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
         <div className="flex-1 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Codigo *</label>
-              <input className="input" type="number" placeholder="001"
-                {...register('codigo', { required: 'Requerido', valueAsNumber: true })}/>
+              <label className="label">Código *</label>
+              <input className="input font-mono font-bold text-gray-900" type="text" placeholder="Ej: 001"
+                {...register('codigo', { required: 'Requerido' })}/>
               {errors.codigo && <p className="text-red-500 text-xs mt-1">{errors.codigo.message}</p>}
             </div>
             <div>
-              <label className="label">Categoria *</label>
+              <label className="label">Categoría *</label>
               <select className="input" {...register('categoria', { required: 'Requerido' })}>
                 <option value="">Seleccionar...</option>
                 {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
@@ -188,7 +242,13 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
               {errors.categoria && <p className="text-red-500 text-xs mt-1">{errors.categoria.message}</p>}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="label font-semibold text-gray-700">Empresa *</label>
+              <select className="input font-medium text-gray-900 border-primary/40" {...register('empresa')}>
+                {EMPRESAS.map(e => <option key={e} value={e}>{e}</option>)}
+              </select>
+            </div>
             <div>
               <label className="label">Unidad *</label>
               <select className="input" {...register('unidad', { required: true })}>
@@ -205,15 +265,15 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
       </div>
 
       <div>
-        <label className="label">Descripcion en Espanol *</label>
-        <input className="input" placeholder="Descripcion completa del item"
+        <label className="label">Descripción en Español *</label>
+        <input className="input" placeholder="Descripción completa del ítem"
           {...register('descripcion', { required: 'Requerido', onChange: handleDescChange })}/>
         {errors.descripcion && <p className="text-red-500 text-xs mt-1">{errors.descripcion.message}</p>}
       </div>
 
       <div>
         <label className="label flex items-center gap-2">
-          Descripcion en Chino Simplificado
+          Descripción en Chino Simplificado
           <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full font-medium">中文</span>
           {traduciendoD
             ? <span className="flex items-center gap-1 text-xs text-primary-light">
@@ -225,7 +285,7 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
               </button>
           }
         </label>
-        <input className="input" placeholder="Se completa automaticamente..."
+        <input className="input" placeholder="Se completa automáticamente..."
           {...register('descripcionZh')}/>
       </div>
 
@@ -239,7 +299,7 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
           <input className="input" placeholder="Opcional" {...register('serie')}/>
         </div>
         <div>
-          <label className="label">Stock minimo</label>
+          <label className="label">Stock mínimo</label>
           <input className="input" type="number" {...register('stockMin', { valueAsNumber: true })}/>
         </div>
       </div>
@@ -247,7 +307,7 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="label flex items-center gap-1">
-            <MapPin size={13} className="text-primary-light"/> Ubicacion
+            <MapPin size={13} className="text-primary-light"/> Ubicación
           </label>
           <select className="input" {...register('ubicacion')}>
             <option value="">Seleccionar...</option>
@@ -262,7 +322,6 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
           </div>
         )}
 
-        {/* NUEVO: solo en modo edicion, permite corregir la cantidad de stock manualmente */}
         {item && (
           <div>
             <label className="label flex items-center gap-1">
@@ -289,7 +348,7 @@ export default function FormItem({ item, onGuardar, onCancelar }) {
         <button type="button" onClick={onCancelar} className="btn-secondary">Cancelar</button>
         <button type="submit" disabled={isSubmitting || subiendo} className="btn-primary">
           {subiendo ? 'Subiendo foto...' : isSubmitting ? 'Guardando...' :
-           item ? 'Actualizar item' : 'Crear item'}
+           item ? 'Actualizar ítem' : 'Crear ítem'}
         </button>
       </div>
     </form>

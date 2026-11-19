@@ -7,14 +7,14 @@ import { initializeApp, getApps } from 'firebase/app'
 import { db } from './firebase'
 
 export const ROLES = [
-  { value: 'administrador',  label: 'Administrador' },
-  { value: 'gerencia',       label: 'Gerencia' },
-  { value: 'almacenero',     label: 'Almacenero' },
-  { value: 'ventas',         label: 'Ventas' },
-  { value: 'taller',         label: 'Taller Mecánico' },
-  { value: 'personalChino',  label: 'Personal Chino' },
-  { value: 'contabilidad',   label: 'Contabilidad' },
-  { value: 'aduanas',        label: 'Aduanas' },
+  { value: 'administrador',  label: 'Administrador',    labelZh: '管理员' },
+  { value: 'gerencia',       label: 'Gerencia',         labelZh: '管理层' },
+  { value: 'almacenero',     label: 'Almacenero',       labelZh: '仓库员' },
+  { value: 'ventas',         label: 'Ventas',           labelZh: '销售' },
+  { value: 'taller',         label: 'Taller Mecánico',  labelZh: '维修车间' },
+  { value: 'personalChino',  label: 'Personal Chino',   labelZh: '中国员工' },
+  { value: 'contabilidad',   label: 'Contabilidad',     labelZh: '会计' },
+  { value: 'aduanas',        label: 'Aduanas',          labelZh: '海关员' },
 ]
 
 const firebaseConfig = {

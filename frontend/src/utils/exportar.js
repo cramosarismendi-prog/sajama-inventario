@@ -8,6 +8,7 @@ export const exportarInventarioExcel = (items) => {
     'Modelo':               i.modelo    || '',
     'N° Serie':             i.serie     || '',
     'Categoría':            i.categoria || '',
+    'Empresa':              i.empresa   || 'SAJAMA S.R.L.',
     'Unidad':               i.unidad    || '',
     'Ubicación':            i.ubicacion || '',
     'Stock actual':         i.stock     ?? 0,

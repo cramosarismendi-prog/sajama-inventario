@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getItems } from '../services/inventario'
 import { useAuth } from '../context/AuthContext'
 import { PageLoader } from '../components/ui/Spinner'
@@ -49,6 +50,8 @@ const firmasVacias = () => ({
 const filaVacia = () => ({ itemId:'', descZh:'', descEs:'', modelo:'', serie:'', unidad:'', cantidad:'', precioUnitario:'', nota:'' })
 
 export default function OrdenSalida() {
+  const { t, i18n } = useTranslation()
+  const isZh = i18n.language === 'zh'
   const { perfil } = useAuth()
   const [items,        setItems]       = useState([])
   const [loading,      setLoading]     = useState(true)
@@ -132,10 +135,57 @@ export default function OrdenSalida() {
     setFilas(prev => {
       const n = [...prev]
       n[idx] = { ...n[idx], [campo]: valor }
+
+      const valTrim = (valor || '').toString().trim().toLowerCase()
+
       if (campo === 'itemId' && valor) {
         const it = items.find(i => i.id === valor)
-        if (it) { n[idx].descEs = it.descripcion||''; n[idx].descZh = it.descripcionZh||''; n[idx].modelo = it.modelo||''; n[idx].serie = it.serie||''; n[idx].unidad = it.unidad||''; n[idx].precioUnitario = it.precio || n[idx].precioUnitario || '' }
+        if (it) {
+          n[idx].descEs = it.descripcion || ''
+          n[idx].descZh = it.descripcionZh || ''
+          n[idx].modelo = it.modelo || ''
+          n[idx].serie = it.serie || ''
+          n[idx].unidad = it.unidad || ''
+          n[idx].precioUnitario = it.precio || n[idx].precioUnitario || ''
+        }
+      } else if (campo === 'serie' && valTrim) {
+        const it = items.find(i =>
+          (i.serie && String(i.serie).trim().toLowerCase() === valTrim) ||
+          (i.codigo && String(i.codigo).trim().toLowerCase() === valTrim)
+        )
+        if (it) {
+          n[idx].itemId = it.id
+          n[idx].descEs = it.descripcion || n[idx].descEs || ''
+          n[idx].descZh = it.descripcionZh || n[idx].descZh || ''
+          n[idx].modelo = it.modelo || n[idx].modelo || ''
+          n[idx].unidad = it.unidad || n[idx].unidad || ''
+          n[idx].precioUnitario = it.precio || n[idx].precioUnitario || ''
+        }
+      } else if (campo === 'modelo' && valTrim) {
+        const it = items.find(i => i.modelo && String(i.modelo).trim().toLowerCase() === valTrim)
+        if (it) {
+          n[idx].itemId = it.id
+          n[idx].descEs = it.descripcion || n[idx].descEs || ''
+          n[idx].descZh = it.descripcionZh || n[idx].descZh || ''
+          n[idx].serie = it.serie || n[idx].serie || ''
+          n[idx].unidad = it.unidad || n[idx].unidad || ''
+          n[idx].precioUnitario = it.precio || n[idx].precioUnitario || ''
+        }
+      } else if (campo === 'descEs' && valTrim) {
+        const it = items.find(i =>
+          (i.descripcion && String(i.descripcion).trim().toLowerCase() === valTrim) ||
+          (i.codigo && String(i.codigo).trim().toLowerCase() === valTrim)
+        )
+        if (it) {
+          n[idx].itemId = it.id
+          n[idx].descZh = it.descripcionZh || n[idx].descZh || ''
+          n[idx].modelo = it.modelo || n[idx].modelo || ''
+          n[idx].serie = it.serie || n[idx].serie || ''
+          n[idx].unidad = it.unidad || n[idx].unidad || ''
+          n[idx].precioUnitario = it.precio || n[idx].precioUnitario || ''
+        }
       }
+
       return n
     })
   }
@@ -303,7 +353,7 @@ td { border:1px solid #aaa; padding:2px 4px; height:15px; }
 .lf { border-bottom:1px solid #aaa; margin:6px 0 2px 0; min-height:14px; padding:1px 2px; font-weight:400; }
 .lbl { font-weight:700; margin-top:8px; }
 .nota { color:red; font-size:7.5pt; margin-top:5px; }
-@page { size:A4 landscape; margin:10mm; }
+@page { size: landscape; size: A4 landscape; margin: 8mm; }
 @media print { body{padding:0} }
 </style></head><body>
 <div class="header">
@@ -375,7 +425,7 @@ window.onload = () => {
 <\/script>
 </body></html>`
 
-    const w = window.open('','_blank','width=900,height=700')
+    const w = window.open('','_blank','width=1100,height=750')
     w.document.write(html)
     w.document.close()
   }
@@ -398,22 +448,45 @@ window.onload = () => {
 
   return (
     <div className="space-y-4 max-w-6xl mx-auto">
+      {/* Datalists para autocompletado y filtrado por nombre, serie y modelo */}
+      <datalist id="datalist-os-desc">
+        {items.map(i => (
+          <option key={i.id} value={i.descripcion}>
+            {i.codigo ? `[${i.codigo}] ` : ''}{i.descripcion} {i.modelo ? `| Mod: ${i.modelo}` : ''} {i.serie ? `| Serie: ${i.serie}` : ''} (Stock: {i.stock ?? 0})
+          </option>
+        ))}
+      </datalist>
+      <datalist id="datalist-os-serie">
+        {items.filter(i => i.serie).map(i => (
+          <option key={i.id} value={i.serie}>
+            {i.serie} — {i.descripcion} {i.modelo ? `(Mod: ${i.modelo})` : ''}
+          </option>
+        ))}
+      </datalist>
+      <datalist id="datalist-os-modelo">
+        {items.filter(i => i.modelo).map(i => (
+          <option key={i.id} value={i.modelo}>
+            {i.modelo} — {i.descripcion} {i.serie ? `(Serie: ${i.serie})` : ''}
+          </option>
+        ))}
+      </datalist>
+
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1>Orden de Salida / 出库单</h1>
-          <p className="text-sm text-gray-500">材料/服务发布申请批准表</p>
+          <h1>{isZh ? '出库单 / Orden de Salida' : 'Orden de Salida / 出库单'}</h1>
+          <p className="text-sm text-gray-500">{isZh ? '材料/服务发布申请批准表' : 'Formulario de aprobación de salida de materiales / servicio'}</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <button onClick={nuevaOrden} className="btn-secondary btn-sm"><FilePlus size={14}/> Nueva</button>
+          <button onClick={nuevaOrden} className="btn-secondary btn-sm"><FilePlus size={14}/> {t('ordenSalida.nueva')}</button>
           <button onClick={guardar} disabled={guardando} className="btn-secondary btn-sm">
-            <Save size={14}/> {guardando ? 'Guardando...' : (docIdRef.current ? 'Actualizar' : 'Guardar')}
+            <Save size={14}/> {guardando ? t('common.guardando') : (docIdRef.current ? t('common.actualizar') : t('common.guardar'))}
           </button>
           <button onClick={scannerActivo ? desactivarScanner : () => { setFilaActiva(0); activarScanner() }}
             className={scannerActivo ? 'btn-danger btn-sm' : 'btn-secondary btn-sm'}>
-            <Scan size={14}/> {scannerActivo ? 'Cancelar scan' : 'Scanner QR'}
+            <Scan size={14}/> {scannerActivo ? (isZh ? '取消扫描' : 'Cancelar scan') : (isZh ? '二维码扫描' : 'Scanner QR')}
           </button>
           <button onClick={imprimir} disabled={guardando} className="btn-primary btn-sm">
-            <Printer size={14}/> {guardando ? 'Guardando...' : 'Imprimir / PDF'}
+            <Printer size={14}/> {guardando ? t('common.guardando') : t('common.imprimir')}
           </button>
         </div>
       </div>
@@ -422,23 +495,23 @@ window.onload = () => {
         <div className="bg-primary text-white rounded-xl px-4 py-3 flex items-center gap-3">
           <Scan size={18} className="animate-pulse shrink-0"/>
           <p className="text-sm font-medium flex-1">
-            Scanner activo — Fila {filaActiva + 1} lista. Escanea el QR del producto.
+            {isZh ? `扫描仪就绪 — 第 ${filaActiva + 1} 行。请扫描产品二维码。` : `Scanner activo — Fila ${filaActiva + 1} lista. Escanea el QR del producto.`}
           </p>
-          <button onClick={desactivarScanner} className="text-white/70 hover:text-white text-xs underline">Cancelar</button>
+          <button onClick={desactivarScanner} className="text-white/70 hover:text-white text-xs underline">{t('common.cancelar')}</button>
         </div>
       )}
 
       <div className="card space-y-3">
         <div className="grid grid-cols-2 gap-4">
-          <div><label className="label">单据号码 Numero de solicitud</label>
+          <div><label className="label">{isZh ? '单据号码' : '单据号码 Numero de solicitud'}</label>
             <input className="input font-mono" value={numSolicitud}
-              placeholder="Se asignará al guardar"
+              placeholder={isZh ? '保存时自动生成' : 'Se asignará al guardar'}
               onChange={e=>{ numRef.current = e.target.value; setNum(e.target.value) }}/></div>
-          <div><label className="label">单据日期 Fecha</label>
+          <div><label className="label">{isZh ? '单据日期' : '单据日期 Fecha'}</label>
             <input className="input" type="date" value={fecha} onChange={e=>setFecha(e.target.value)}/></div>
-          <div><label className="label">申请单位 Unidad Solicitante</label>
-            <input className="input" placeholder="Departamento" value={unidadSolic} onChange={e=>setUnidad(e.target.value)}/></div>
-          <div><label className="label">申请人 Solicitante</label>
+          <div><label className="label">{isZh ? '申请单位' : '申请单位 Unidad Solicitante'}</label>
+            <input className="input" placeholder={isZh ? '部门' : 'Departamento'} value={unidadSolic} onChange={e=>setUnidad(e.target.value)}/></div>
+          <div><label className="label">{isZh ? '申请人' : '申请人 Solicitante'}</label>
             <input className="input" value={solicitante} onChange={e=>setSolic(e.target.value)}/></div>
         </div>
       </div>
@@ -484,14 +557,31 @@ window.onload = () => {
                   <td className="td p-1">
                     <select className="w-full text-xs border border-gray-200 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-primary-light"
                       value={f.itemId} onChange={e=>actualizarFila(idx,'itemId',e.target.value)}>
-                      <option value="">—</option>
-                      {items.map(i=><option key={i.id} value={i.id}>{i.descripcion||i.descripcionZh} (stock: {i.stock ?? 0})</option>)}
+                      <option value="">— Catálogo —</option>
+                      {items.map(i=> (
+                        <option key={i.id} value={i.id}>
+                          {i.codigo ? `[${i.codigo}] ` : ''}{i.descripcion || i.descripcionZh} {i.serie ? `| S:${i.serie}` : ''} {i.modelo ? `| M:${i.modelo}` : ''} (stock: {i.stock ?? 0})
+                        </option>
+                      ))}
                     </select>
-                    {f.descEs && <div className="text-xs text-primary mt-0.5 px-1">{f.descEs}</div>}
+                    <input className="w-full text-xs border border-gray-200 rounded px-1 py-0.5 mt-1 focus:outline-none focus:ring-1 focus:ring-primary-light"
+                      placeholder="Descripción en Español (escribir o buscar en catálogo)..."
+                      list="datalist-os-desc"
+                      value={f.descEs} onChange={e=>actualizarFila(idx,'descEs',e.target.value)} />
                     {stockInsuficiente && <div className="text-xs text-red-500 mt-0.5 px-1">⚠️ Stock insuficiente</div>}
                   </td>
-                  <td className="td p-1"><input className="w-full text-xs border border-gray-200 rounded px-1 py-0.5 focus:outline-none" value={f.modelo} onChange={e=>actualizarFila(idx,'modelo',e.target.value)}/></td>
-                  <td className="td p-1"><input className="w-full text-xs border border-gray-200 rounded px-1 py-0.5 focus:outline-none" value={f.serie} onChange={e=>actualizarFila(idx,'serie',e.target.value)}/></td>
+                  <td className="td p-1">
+                    <input className="w-full text-xs border border-gray-200 rounded px-1 py-0.5 focus:outline-none"
+                      placeholder="Modelo..."
+                      list="datalist-os-modelo"
+                      value={f.modelo} onChange={e=>actualizarFila(idx,'modelo',e.target.value)}/>
+                  </td>
+                  <td className="td p-1">
+                    <input className="w-full text-xs border border-gray-200 rounded px-1 py-0.5 focus:outline-none font-mono"
+                      placeholder="Serie..."
+                      list="datalist-os-serie"
+                      value={f.serie} onChange={e=>actualizarFila(idx,'serie',e.target.value)}/>
+                  </td>
                   <td className="td p-1">
                     <select
                       className="w-full text-xs border border-gray-200 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-primary-light"
@@ -540,19 +630,21 @@ window.onload = () => {
         </div>
         <div className="p-3 border-t border-gray-100">
           <button type="button" onClick={agregarFila} className="btn-secondary btn-sm">
-            <Plus size={14}/> Agregar fila
+            <Plus size={14}/> {isZh ? '添加行' : 'Agregar fila'}
           </button>
         </div>
       </div>
 
       {guardadoUnaVez && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-2 text-sm text-primary">
-          💾 Orden N° {numSolicitud} guardada. Si seguís editando y volvés a tocar Guardar o Imprimir, se actualizará el mismo registro (no se duplica).
+          {isZh
+            ? `💾 单据 ${numSolicitud} 已保存。如继续修改并点击保存或打印，将自动更新该记录（不会重复创建）。`
+            : `💾 Orden N° ${numSolicitud} guardada. Si seguís editando y volvés a tocar Guardar o Imprimir, se actualizará el mismo registro (no se duplica).`}
         </div>
       )}
 
       <div className="card">
-        <h3 className="mb-3 text-sm text-gray-500">签名区域 / Seccion de firmas</h3>
+        <h3 className="mb-3 text-sm text-gray-500">{isZh ? '签名区域' : '签名区域 / Seccion de firmas'}</h3>
         <div className="grid grid-cols-3 gap-0 border border-gray-300 rounded-lg overflow-hidden text-xs">
           <div className="p-3 border-r border-gray-300 space-y-3">
             <div>

@@ -5,10 +5,11 @@ import {
   Package, Search, FileText, FilePlus, List,
   BarChart2, Users, LogOut, Globe, ChevronLeft,
   ChevronRight, ShieldAlert, FileSpreadsheet, ShoppingCart, FileArchive, X, KeyRound,
-  Truck, HardHat, Calculator, Fuel
+  Truck, HardHat, Calculator, Fuel, ShieldCheck
 } from 'lucide-react'
-import i18n from '../../i18n'
+import { useTranslation } from 'react-i18next'
 import { ChangePasswordModal } from '../ui/ChangePasswordModal'
+import { MfaEnrollmentModal } from '../ui/MfaEnrollmentModal'
 
 const MENU = [
   { key: 'inventario',   path: '/inventario',    icon: Package,         modulo: 'inventario'   },
@@ -51,11 +52,16 @@ const ROL_ZH = {
 const ADMIN_ITEMS = ['usuarios', 'auditoria']
 
 export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) {
-  const { perfil, logout, tienePermiso } = useAuth()
+  const { perfil, logout, tienePermiso, esSuperAdmin } = useAuth()
+  const { i18n } = useTranslation()
   const navigate = useNavigate()
   const isZh     = i18n.language === 'zh'
   const labels   = isZh ? LABELS.zh : LABELS.es
   const [modalPassword, setModalPassword] = useState(false)
+  const [modalMfa, setModalMfa]           = useState(false)
+
+  // Solo admin@sajama.com (Super Admin) o usuarios que ya tengan 2FA habilitado pueden ver el boton 2FA
+  const puedeVer2FA = esSuperAdmin || perfil?.mfaHabilitado
 
   const handleLogout = async () => { await logout(); navigate('/login'); onMobileClose?.() }
   const toggleLang   = () => i18n.changeLanguage(isZh ? 'es' : 'zh')
@@ -146,10 +152,26 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) {
           {!collapsed && perfil && (
             <div className="px-3 py-2 bg-white/5 rounded-lg">
               <p className="text-white text-xs font-semibold truncate">{perfil.nombre}</p>
-              <p className="text-white/50 text-xs capitalize">
-                {isZh ? (ROL_ZH[perfil.rol] || perfil.rol) : perfil.rol}
+              <p className="text-white/50 text-xs capitalize flex items-center justify-between">
+                <span>{isZh ? (ROL_ZH[perfil.rol] || perfil.rol) : perfil.rol}</span>
+                {perfil.esEncargadoIT && <span className="text-[10px] bg-indigo-500/30 text-indigo-200 px-1 py-0.2 rounded">IT</span>}
               </p>
             </div>
+          )}
+
+          {puedeVer2FA && (
+            <button onClick={() => setModalMfa(true)}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors w-full text-sm">
+              <ShieldCheck size={18} className="shrink-0 text-green-400"/>
+              {!collapsed && (
+                <span className="flex items-center justify-between w-full pr-1">
+                  <span>{isZh ? '双因素认证' : 'Seguridad 2FA'}</span>
+                  {perfil?.mfaHabilitado && (
+                    <span className="text-[10px] bg-green-500/20 text-green-300 px-1.5 py-0.5 rounded border border-green-400/30 font-semibold">ON</span>
+                  )}
+                </span>
+              )}
+            </button>
           )}
 
           <button onClick={() => setModalPassword(true)}
@@ -167,6 +189,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) {
       </aside>
 
       <ChangePasswordModal open={modalPassword} onClose={() => setModalPassword(false)} />
+      <MfaEnrollmentModal open={modalMfa} onClose={() => setModalMfa(false)} />
     </>
   )
 }

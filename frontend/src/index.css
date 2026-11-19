@@ -31,3 +31,11 @@
   .td          { @apply px-4 py-3 border-b border-gray-100 text-gray-700; }
   .tr-hover    { @apply hover:bg-primary-pale transition-colors; }
 }
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 8mm;
+  }
+}
+

@@ -1,6 +1,11 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, connectAuthEmulator } from 'firebase/auth'
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  connectFirestoreEmulator
+} from 'firebase/firestore'
 import { getStorage, connectStorageEmulator } from 'firebase/storage'
 
 const firebaseConfig = {
@@ -14,7 +19,11 @@ const firebaseConfig = {
 
 const app        = initializeApp(firebaseConfig)
 export const auth    = getAuth(app)
-export const db      = getFirestore(app)
+
+// Caching local en IndexedDB (multitabulador) para respuestas instantáneas
+export const db      = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+})
 export const storage = getStorage(app)
 
 // Conectar emuladores locales en modo desarrollo

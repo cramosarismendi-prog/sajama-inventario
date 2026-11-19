@@ -59,7 +59,10 @@ service cloud.firestore {
     }
     match /auditoria/{id} {
       allow read:  if puedeVerAuditoria();
-      allow write: if isAuth();
+      allow create, update, delete: if isAuth();
+    }
+    match /backups_auditoria/{id} {
+      allow read, write: if isAuth();
     }
     match /usuarios/{uid} {
       allow read:   if request.auth != null;
@@ -96,6 +99,14 @@ service cloud.firestore {
     }
     match /kardex_conciliaciones/{id} {
       allow read, write: if isAuth();
+    }
+    match /configuracion/{id} {
+      allow read: if isAuth();
+      allow write: if isAuth();
+    }
+    match /historico_cotizaciones/{id} {
+      allow read: if isAuth();
+      allow write: if isAuth();
     }
   }
 }

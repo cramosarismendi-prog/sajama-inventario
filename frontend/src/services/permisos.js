@@ -5,28 +5,28 @@
  */
 
 export const MODULOS = [
-  { key: 'inventario',   label: 'Inventario',       icon: 'Package'        },
-  { key: 'compras',      label: 'Compras',           icon: 'ShoppingCart'   },
-  { key: 'importar',     label: 'Importar Excel',    icon: 'FileSpreadsheet'},
-  { key: 'consultas',    label: 'Consultas',         icon: 'Search'         },
-  { key: 'ordenSalida',  label: 'Orden de Salida',   icon: 'FileText'       },
-  { key: 'ordenEntrada', label: 'Orden de Entrada',  icon: 'FilePlus'       },
-  { key: 'aduana',       label: 'Aduana',            icon: 'FileArchive'    },
-  { key: 'lista',        label: 'Lista Maestra',     icon: 'List'           },
-  { key: 'reportes',     label: 'Reportes',          icon: 'BarChart2'      },
-  { key: 'usuarios',     label: 'Usuarios',          icon: 'Users'          },
-  { key: 'auditoria',    label: 'Auditoría',         icon: 'ShieldAlert'    },
-  { key: 'maquinaria',   label: 'Maquinaria',        icon: 'Truck'          },
-  { key: 'equipos',      label: 'Equipos',           icon: 'HardHat'        },
-  { key: 'abastecimiento', label: 'Abastecimiento y Despacho', icon: 'Fuel'  },
-  { key: 'kardex',       label: 'Kardex Contable',   icon: 'Calculator'     },
+  { key: 'inventario',   label: 'Inventario',                labelZh: '库存目录',        icon: 'Package'        },
+  { key: 'compras',      label: 'Compras',                   labelZh: '采购管理',        icon: 'ShoppingCart'   },
+  { key: 'importar',     label: 'Importar Excel',            labelZh: '导入Excel',       icon: 'FileSpreadsheet'},
+  { key: 'consultas',    label: 'Consultas',                 labelZh: '综合查询',        icon: 'Search'         },
+  { key: 'ordenSalida',  label: 'Orden de Salida',           labelZh: '出库单',          icon: 'FileText'       },
+  { key: 'ordenEntrada', label: 'Orden de Entrada',          labelZh: '入库单',          icon: 'FilePlus'       },
+  { key: 'aduana',       label: 'Aduana',                    labelZh: '海关通关',        icon: 'FileArchive'    },
+  { key: 'lista',        label: 'Lista Maestra',             labelZh: '主列表',          icon: 'List'           },
+  { key: 'reportes',     label: 'Reportes',                  labelZh: '统计报表',        icon: 'BarChart2'      },
+  { key: 'usuarios',     label: 'Usuarios',                  labelZh: '用户管理',        icon: 'Users'          },
+  { key: 'auditoria',    label: 'Auditoría',                 labelZh: '审计日志',        icon: 'ShieldAlert'    },
+  { key: 'maquinaria',   label: 'Maquinaria',                labelZh: '机械设备',        icon: 'Truck'          },
+  { key: 'equipos',      label: 'Equipos',                   labelZh: '设备管理',        icon: 'HardHat'        },
+  { key: 'abastecimiento', label: 'Abastecimiento y Despacho', labelZh: '燃油供应与派送',  icon: 'Fuel'           },
+  { key: 'kardex',       label: 'Kardex Contable',           labelZh: '财务卡片账',      icon: 'Calculator'     },
 ]
 
 export const ACCIONES = [
-  { key: 'ver',      label: 'Ver',      color: 'blue'  },
-  { key: 'crear',    label: 'Crear',    color: 'green' },
-  { key: 'editar',   label: 'Editar',   color: 'yellow'},
-  { key: 'eliminar', label: 'Eliminar', color: 'red'   },
+  { key: 'ver',      label: 'Ver',      labelZh: '查看', color: 'blue'  },
+  { key: 'crear',    label: 'Crear',    labelZh: '新建', color: 'green' },
+  { key: 'editar',   label: 'Editar',   labelZh: '编辑', color: 'yellow'},
+  { key: 'eliminar', label: 'Eliminar', labelZh: '删除', color: 'red'   },
 ]
 
 // Permisos base por rol

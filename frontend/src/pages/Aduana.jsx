@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import { db } from '../services/firebase'
 import { registrarAccion } from '../services/auditoria'
@@ -56,18 +57,20 @@ const verPDF = (dataUrl) => {
 // ── Selector de archivo con estado de subida + campo de referencia editable ──
 function CampoArchivo({ label, requerido, urlActual, nombreActual, onSeleccionar, archivoSeleccionado,
   valorTexto, onCambiarTexto, placeholderTexto, textoRequerido }) {
+  const { t, i18n } = useTranslation()
+  const isZh = i18n.language === 'zh'
   const inputId = 'file-' + label.replace(/\s+/g, '-')
 
   const handleChange = (e) => {
     const file = e.target.files[0]
     if (!file) return
     if (file.type !== 'application/pdf') {
-      toast.error('Solo se permiten archivos PDF')
+      toast.error(isZh ? '仅支持PDF格式文件' : 'Solo se permiten archivos PDF')
       e.target.value = ''
       return
     }
     if (file.size > MAX_PDF_BYTES) {
-      toast.error(`El PDF supera el máximo permitido (${Math.round(MAX_PDF_BYTES / 1024)} KB)`)
+      toast.error(isZh ? `PDF文件大小超出限制 (${Math.round(MAX_PDF_BYTES / 1024)} KB)` : `El PDF supera el máximo permitido (${Math.round(MAX_PDF_BYTES / 1024)} KB)`)
       e.target.value = ''
       return
     }
@@ -89,17 +92,17 @@ function CampoArchivo({ label, requerido, urlActual, nombreActual, onSeleccionar
         <input id={inputId} type="file" accept="application/pdf" className="hidden"
           onChange={handleChange} />
         <label htmlFor={inputId} className="btn-secondary btn-sm cursor-pointer whitespace-nowrap">
-          <Paperclip size={13}/> Adjuntar PDF
+          <Paperclip size={13}/> {isZh ? '上传PDF附件' : 'Adjuntar PDF'}
         </label>
         {urlActual && !archivoSeleccionado && (
           <button type="button" onClick={() => verPDF(urlActual)}
-            className="p-1.5 rounded-lg hover:bg-primary-pale text-primary transition-colors" title="Ver PDF actual">
+            className="p-1.5 rounded-lg hover:bg-primary-pale text-primary transition-colors" title={isZh ? '查看当前PDF' : 'Ver PDF actual'}>
             <ExternalLink size={14}/>
           </button>
         )}
       </div>
       <div className="flex items-center justify-between mt-1">
-        <p className="text-xs text-gray-400">Solo PDF, máximo {Math.round(MAX_PDF_BYTES / 1024)} KB</p>
+        <p className="text-xs text-gray-400">{isZh ? `仅限PDF格式，最大 ${Math.round(MAX_PDF_BYTES / 1024)} KB` : `Solo PDF, máximo ${Math.round(MAX_PDF_BYTES / 1024)} KB`}</p>
         {nombreArchivo && (
           <p className="text-xs text-gray-500 flex items-center gap-1"><Paperclip size={11}/> {nombreArchivo}</p>
         )}
@@ -109,6 +112,8 @@ function CampoArchivo({ label, requerido, urlActual, nombreActual, onSeleccionar
 }
 
 function FormAduana({ registro, onGuardar, onCancelar }) {
+  const { t, i18n } = useTranslation()
+  const isZh = i18n.language === 'zh'
   const [descripcion, setDescripcion] = useState(registro?.descripcionMercaderia || '')
   const [fecha,       setFecha]       = useState(registro?.fecha || format(new Date(), 'yyyy-MM-dd'))
   const [refBL,       setRefBL]       = useState(registro?.blReferencia || '')
@@ -125,9 +130,9 @@ function FormAduana({ registro, onGuardar, onCancelar }) {
   const onSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    if (!descripcion.trim()) { setError('La descripción de la mercadería es requerida'); return }
-    if (!registro?.blUrl && !archBL) { setError('El archivo de BL es requerido'); return }
-    if (!refBL.trim()) { setError('El número o texto del contenedor (BL) es requerido'); return }
+    if (!descripcion.trim()) { setError(isZh ? '申报货物描述为必填项' : 'La descripción de la mercadería es requerida'); return }
+    if (!registro?.blUrl && !archBL) { setError(isZh ? '提单 (BL) 文件为必填项' : 'El archivo de BL es requerido'); return }
+    if (!refBL.trim()) { setError(isZh ? '集装箱号或提单参考文本为必填项' : 'El número o texto del contenedor (BL) es requerido'); return }
     setGuardando(true)
     try {
       await onGuardar({
@@ -144,46 +149,46 @@ function FormAduana({ registro, onGuardar, onCancelar }) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
-        <label className="label">Descripción de la mercadería *</label>
+        <label className="label">{isZh ? '申报物资 / 货物描述 *' : 'Descripción de la mercadería *'}</label>
         <input className="input" value={descripcion} onChange={e => setDescripcion(e.target.value)}
-          placeholder="Ej: Repuestos y filtros para maquinaria pesada" />
+          placeholder={isZh ? '例如: 重型机械滤清器及备件' : 'Ej: Repuestos y filtros para maquinaria pesada'} />
       </div>
 
       <CampoArchivo label="BL" requerido textoRequerido
         urlActual={registro?.blUrl} nombreActual={registro?.blNombre}
         archivoSeleccionado={archBL} onSeleccionar={setArchBL}
         valorTexto={refBL} onCambiarTexto={setRefBL}
-        placeholderTexto="N° o texto del contenedor" />
+        placeholderTexto={isZh ? '集装箱号或提单编号' : 'N° o texto del contenedor'} />
 
-      <CampoArchivo label="Factura"
+      <CampoArchivo label={isZh ? '商业发票 (Factura)' : 'Factura'}
         urlActual={registro?.facturaUrl} nombreActual={registro?.facturaNombre}
         archivoSeleccionado={archFactura} onSeleccionar={setArchFactura}
         valorTexto={refFactura} onCambiarTexto={setRefFactura}
-        placeholderTexto="Referencia (opcional)" />
+        placeholderTexto={isZh ? '发票编号 (选填)' : 'Referencia (opcional)'} />
 
-      <CampoArchivo label="Lista de empaque"
+      <CampoArchivo label={isZh ? '装箱单 (Lista de empaque)' : 'Lista de empaque'}
         urlActual={registro?.listaEmpaqueUrl} nombreActual={registro?.listaEmpaqueNombre}
         archivoSeleccionado={archLista} onSeleccionar={setArchLista}
         valorTexto={refLista} onCambiarTexto={setRefLista}
-        placeholderTexto="Referencia (opcional)" />
+        placeholderTexto={isZh ? '装箱单参考 (选填)' : 'Referencia (opcional)'} />
 
-      <CampoArchivo label="DIM"
+      <CampoArchivo label={isZh ? '报关单 (DIM)' : 'DIM'}
         urlActual={registro?.dimUrl} nombreActual={registro?.dimNombre}
         archivoSeleccionado={archDIM} onSeleccionar={setArchDIM}
         valorTexto={refDIM} onCambiarTexto={setRefDIM}
-        placeholderTexto="Referencia (opcional)" />
+        placeholderTexto={isZh ? '报关单参考 (选填)' : 'Referencia (opcional)'} />
 
       <div>
-        <label className="label">Fecha</label>
+        <label className="label">{isZh ? '业务日期' : 'Fecha'}</label>
         <input className="input" type="date" value={fecha} onChange={e => setFecha(e.target.value)} />
       </div>
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
       <div className="flex gap-3 justify-end pt-2 border-t border-gray-100">
-        <button type="button" onClick={onCancelar} className="btn-secondary">Cancelar</button>
+        <button type="button" onClick={onCancelar} className="btn-secondary">{isZh ? '取消' : 'Cancelar'}</button>
         <button type="submit" disabled={guardando} className="btn-primary">
-          {guardando ? <><Loader2 size={14} className="animate-spin inline mr-1"/> Guardando...</> : registro ? 'Actualizar' : 'Guardar'}
+          {guardando ? <><Loader2 size={14} className="animate-spin inline mr-1"/> {isZh ? '正在保存...' : 'Guardando...'}</> : registro ? (isZh ? '更新' : 'Actualizar') : (isZh ? '保存' : 'Guardar')}
         </button>
       </div>
     </form>
@@ -191,6 +196,8 @@ function FormAduana({ registro, onGuardar, onCancelar }) {
 }
 
 export default function Aduana() {
+  const { t, i18n } = useTranslation()
+  const isZh = i18n.language === 'zh'
   const { perfil, tienePermiso } = useAuth()
   const [registros, setRegistros] = useState([])
   const [loading,   setLoading]   = useState(true)
@@ -251,7 +258,7 @@ export default function Aduana() {
           usuario: perfil?.nombre, rol: perfil?.rol, modulo: 'Aduana', accion: 'CREAR',
           detalle: `Registró trámite de aduana: ${payload.descripcionMercaderia}`,
         })
-        toast.success('Trámite de aduana guardado correctamente')
+        toast.success(isZh ? '海关清关手续保存成功' : 'Trámite de aduana guardado correctamente')
       } else {
         await updateDoc(docRef, {
           ...payload,
@@ -261,11 +268,11 @@ export default function Aduana() {
           usuario: perfil?.nombre, rol: perfil?.rol, modulo: 'Aduana', accion: 'EDITAR',
           detalle: `Editó trámite de aduana: ${payload.descripcionMercaderia}`,
         })
-        toast.success('Trámite actualizado correctamente')
+        toast.success(isZh ? '清关手续更新成功' : 'Trámite actualizado correctamente')
       }
       setModal(false); setEditando(null)
     } catch (e) {
-      toast.error('Error al guardar: ' + e.message)
+      toast.error((isZh ? '保存失败: ' : 'Error al guardar: ') + e.message)
     }
   }
 
@@ -276,17 +283,17 @@ export default function Aduana() {
         usuario: perfil?.nombre, rol: perfil?.rol, modulo: 'Aduana', accion: 'ELIMINAR',
         detalle: `Eliminó trámite de aduana: ${delRegistro.descripcionMercaderia}`,
       })
-      toast.success('Trámite eliminado')
+      toast.success(isZh ? '清关手续已删除' : 'Trámite eliminado')
       setDelRegistro(null)
     } catch (e) {
-      toast.error('Error al eliminar: ' + e.message)
+      toast.error((isZh ? '删除失败: ' : 'Error al eliminar: ') + e.message)
     }
   }
 
   const linkArchivo = (url, referencia) => url
     ? <div className="flex flex-col gap-0.5">
         <button type="button" onClick={() => verPDF(url)}
-          className="inline-flex items-center gap-1 text-primary hover:underline text-xs"><ExternalLink size={12}/> Ver</button>
+          className="inline-flex items-center gap-1 text-primary hover:underline text-xs"><ExternalLink size={12}/> {isZh ? '查看' : 'Ver'}</button>
         {referencia && <span className="text-xs text-gray-400">{referencia}</span>}
       </div>
     : <span className="text-gray-300 text-xs">—</span>
@@ -298,25 +305,25 @@ export default function Aduana() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="flex items-center gap-2">
-            <FileArchive size={22} className="text-primary"/> Aduana
+            <FileArchive size={22} className="text-primary"/> {isZh ? '海关通关管理' : 'Aduana'}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            {registros.length} trámite(s) de importación registrados
+            {isZh ? `已登记 ${registros.length} 笔进口清关档案` : `${registros.length} trámite(s) de importación registrados`}
           </p>
         </div>
         {canEdit && (
           <button onClick={() => { setEditando(null); setModal(true) }} className="btn-primary btn-sm">
-            <Plus size={14}/> Nuevo trámite
+            <Plus size={14}/> {isZh ? '新建清关手续' : 'Nuevo trámite'}
           </button>
         )}
       </div>
 
       <div className="card p-0 overflow-hidden">
-        {registros.length === 0 ? <EmptyState mensaje="No hay trámites de aduana registrados"/> : (
+        {registros.length === 0 ? <EmptyState mensaje={isZh ? '暂无海关清关手续记录' : 'No hay trámites de aduana registrados'}/> : (
           <div className="overflow-x-auto">
             <table className="table-auto w-full">
               <thead><tr>
-                {['Descripción de la mercadería','BL','Factura','Lista de empaque','DIM','Fecha','Registrado por', canEdit ? 'Acciones' : null].filter(Boolean).map(h => (
+                {[isZh ? '申报货物描述' : 'Descripción de la mercadería', 'BL', isZh ? '发票' : 'Factura', isZh ? '装箱单' : 'Lista de empaque', 'DIM', isZh ? '日期' : 'Fecha', isZh ? '经办人' : 'Registrado por', canEdit ? (isZh ? '操作' : 'Acciones') : null].filter(Boolean).map(h => (
                   <th key={h} className="th">{h}</th>
                 ))}
               </tr></thead>
@@ -338,12 +345,12 @@ export default function Aduana() {
                       <td className="td">
                         <div className="flex gap-1.5">
                           <button onClick={() => { setEditando(r); setModal(true) }}
-                            className="p-1.5 rounded-lg hover:bg-primary-pale text-primary transition-colors" title="Editar">
+                            className="p-1.5 rounded-lg hover:bg-primary-pale text-primary transition-colors" title={isZh ? '编辑' : 'Editar'}>
                             <Edit2 size={14}/>
                           </button>
                           {canDelete && (
                             <button onClick={() => setDelRegistro(r)}
-                              className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors" title="Eliminar">
+                              className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors" title={isZh ? '删除' : 'Eliminar'}>
                               <Trash2 size={14}/>
                             </button>
                           )}
@@ -359,13 +366,13 @@ export default function Aduana() {
       </div>
 
       <Modal open={modalOpen} onClose={() => { setModal(false); setEditando(null) }}
-        title={editando ? 'Editar trámite de aduana' : 'Nuevo trámite de aduana'} size="md">
+        title={editando ? (isZh ? '编辑海关手续' : 'Editar trámite de aduana') : (isZh ? '新建海关清关手续' : 'Nuevo trámite de aduana')} size="md">
         <FormAduana registro={editando} onGuardar={handleGuardar}
           onCancelar={() => { setModal(false); setEditando(null) }} />
       </Modal>
 
       <Confirm open={!!delRegistro}
-        mensaje={`¿Eliminar el trámite "${delRegistro?.descripcionMercaderia}"? Esta acción no se puede deshacer.`}
+        mensaje={isZh ? `确定要删除手续 "${delRegistro?.descripcionMercaderia}" 吗？此操作无法撤销。` : `¿Eliminar el trámite "${delRegistro?.descripcionMercaderia}"? Esta acción no se puede deshacer.`}
         onConfirm={handleEliminar} onCancel={() => setDelRegistro(null)} />
     </div>
   )

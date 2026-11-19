@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
-import { Package, Eye, EyeOff } from 'lucide-react'
+import { Package, Eye, EyeOff, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+import { registrarAccion } from '../services/auditoria'
 
 export default function Login() {
   const { t } = useTranslation()
@@ -12,12 +14,31 @@ export default function Login() {
   const [form, setForm]       = useState({ email: '', password: '' })
   const [showPass, setShow]   = useState(false)
   const [loading,  setLoading] = useState(false)
+  const [mensajeSesion, setMensajeSesion] = useState(null)
+
+  useEffect(() => {
+    const razon = sessionStorage.getItem('sajama_logout_reason')
+    if (razon === 'inactividad') {
+      setMensajeSesion('⏰ Su sesión se ha cerrado automáticamente por inactividad.')
+      sessionStorage.removeItem('sajama_logout_reason')
+    } else if (razon === 'cierre_global') {
+      setMensajeSesion('🚨 El Administrador ha cerrado todas las sesiones activas para requerir la activación de 2FA.')
+      sessionStorage.removeItem('sajama_logout_reason')
+    }
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     try {
       await login(form.email, form.password)
+      await registrarAccion({
+        usuario: form.email,
+        rol: 'Usuario',
+        modulo: 'Autenticación',
+        accion: 'LOGIN',
+        detalle: `Inicio de sesión exitoso en el sistema: ${form.email}`
+      })
       navigate('/inventario')
     } catch (err) {
       toast.error('Credenciales incorrectas. Verifica tu email y contraseña.')
@@ -38,6 +59,12 @@ export default function Login() {
             <p className="text-white/70 text-sm mt-1">{t('app.subtitle')}</p>
           </div>
           <form onSubmit={handleSubmit} className="px-8 py-8 space-y-5">
+            {mensajeSesion && (
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs font-semibold flex items-start gap-2.5">
+                <AlertTriangle size={18} className="shrink-0 text-amber-600 mt-0.5" />
+                <p>{mensajeSesion}</p>
+              </div>
+            )}
             <div>
               <label className="label">{t('auth.email')}</label>
               <input type="email" required className="input"

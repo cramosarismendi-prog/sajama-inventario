@@ -58,15 +58,15 @@ export async function getCatalogoValorado() {
  * Tipos de movimiento disponibles
  */
 export const TIPOS_MOVIMIENTO = [
-  { id: 'ENTRADA_COMPRA',       label: 'Entrada por Compra',                signo: 1,  tipo: 'entrada' },
-  { id: 'ENTRADA_DEVOLUCION',    label: 'Entrada por Devolución de Cliente',  signo: 1,  tipo: 'entrada' },
-  { id: 'SALIDA_VENTA',         label: 'Salida por Venta (COGS)',           signo: -1, tipo: 'salida'  },
-  { id: 'SALIDA_MERMA',         label: 'Salida por Merma / Daño / Venc.',   signo: -1, tipo: 'salida'  },
-  { id: 'SALIDA_CONSUMO',       label: 'Salida por Consumo Interno',        signo: -1, tipo: 'salida'  },
-  { id: 'TRANSFERENCIA_INTERNA',label: 'Transferencia entre Sucursales',    signo: 0,  tipo: 'transferencia' },
-  { id: 'AJUSTE_SOBRANTE',      label: 'Ajuste de Auditoría (Sobrante +)',  signo: 1,  tipo: 'ajuste'  },
-  { id: 'AJUSTE_FALTANTE',      label: 'Ajuste de Auditoría (Faltante -)',  signo: -1, tipo: 'ajuste'  },
-  { id: 'CONTRA_ASIENTO',       label: 'Contra-Asiento de Corrección',      signo: 0,  tipo: 'correccion' },
+  { id: 'ENTRADA_COMPRA',       label: 'Entrada por Compra',                labelZh: '采购入库',           signo: 1,  tipo: 'entrada' },
+  { id: 'ENTRADA_DEVOLUCION',    label: 'Entrada por Devolución de Cliente',  labelZh: '客户退货入库',       signo: 1,  tipo: 'entrada' },
+  { id: 'SALIDA_VENTA',         label: 'Salida por Venta (COGS)',           labelZh: '销售出库 (COGS)',     signo: -1, tipo: 'salida'  },
+  { id: 'SALIDA_MERMA',         label: 'Salida por Merma / Daño / Venc.',   labelZh: '损耗/报废出库',      signo: -1, tipo: 'salida'  },
+  { id: 'SALIDA_CONSUMO',       label: 'Salida por Consumo Interno',        labelZh: '内部领用出库',       signo: -1, tipo: 'salida'  },
+  { id: 'TRANSFERENCIA_INTERNA',label: 'Transferencia entre Sucursales',    labelZh: '仓库间移库调拨',     signo: 0,  tipo: 'transferencia' },
+  { id: 'AJUSTE_SOBRANTE',      label: 'Ajuste de Auditoría (Sobrante +)',  labelZh: '盘盈调账 (+)',       signo: 1,  tipo: 'ajuste'  },
+  { id: 'AJUSTE_FALTANTE',      label: 'Ajuste de Auditoría (Faltante -)',  labelZh: '盘亏调账 (-)',       signo: -1, tipo: 'ajuste'  },
+  { id: 'CONTRA_ASIENTO',       label: 'Contra-Asiento de Corrección',      labelZh: '红字冲销/反向分录',  signo: 0,  tipo: 'correccion' },
 ]
 
 /**
