@@ -303,7 +303,7 @@ export default function ImportarExcel() {
             onChange={e => { if (e.target.files[0]) leerExcel(e.target.files[0]) }} />
 
           {/* Instrucciones */}
-          <div className="mt-4 bg-blue-50 rounded-xl p-4 text-sm text-primary space-y-1">
+          <div className="mt-4 bg-[#EEF2F0] border border-[#DCE3DF] rounded-xl p-4 text-sm text-[#16241F] space-y-1">
             <p className="font-semibold">
               {isZh ? '📋 系统能够自动识别匹配以下列名：' : '📋 El sistema detecta automáticamente columnas con estos nombres:'}
             </p>
@@ -481,7 +481,7 @@ export default function ImportarExcel() {
                 <p className="text-3xl font-bold text-success">{resultado.creados}</p>
                 <p className="text-xs text-green-700 mt-1">{isZh ? '新增创建' : 'Ítems creados'}</p>
               </div>
-              <div className="bg-blue-50 rounded-xl p-4">
+              <div className="bg-[#EEF2F0] border border-[#DCE3DF] rounded-xl p-4">
                 <p className="text-3xl font-bold text-primary">{resultado.actualizados}</p>
                 <p className="text-xs text-primary mt-1">{isZh ? '匹配更新' : 'Actualizados'}</p>
               </div>

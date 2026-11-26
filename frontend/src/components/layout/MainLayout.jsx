@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
-import { Menu, Package } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { BannerTipoCambio } from '../ui/BannerTipoCambio'
+import logoSajama from '../../assets/logo-sajama.jpg'
 
 export function MainLayout() {
   const [collapsed, setCollapsed] = useState(false)
@@ -17,7 +18,7 @@ export function MainLayout() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-[#F4F6F5]">
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(p => !p)}
@@ -25,20 +26,20 @@ export function MainLayout() {
         onMobileClose={() => setMobileOpen(false)}
       />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <header className="bg-white border-b border-gray-100 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3 shrink-0">
+        <header className="bg-white border-b border-[#E2E7E4] px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2.5">
             <button
               onClick={handleToggleMenu}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 focus:outline-none"
+              className="p-2 rounded-lg hover:bg-[#EEF2F0] transition-colors text-[#233830] focus:outline-none"
               aria-label="Abrir menú"
             >
               <Menu size={22} />
             </button>
             <div className="flex items-center gap-2 md:hidden">
-              <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center text-white">
-                <Package size={15} />
+              <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#16241F]/15 shadow-xs bg-[#FDE200] shrink-0">
+                <img src={logoSajama} alt="Sajama 4x4" className="w-full h-full object-cover" />
               </div>
-              <span className="font-bold text-gray-900 text-sm">Sajama.SRL</span>
+              <span className="font-bold text-[#16241F] text-sm">Sajama.SRL</span>
             </div>
           </div>
           

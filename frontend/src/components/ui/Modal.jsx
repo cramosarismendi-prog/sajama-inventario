@@ -20,21 +20,21 @@ export function Modal({ open, onClose, title, children, size = 'md', closeOnBack
         }
       }}
     >
-      <div className={`bg-white rounded-2xl shadow-2xl w-full max-w-[96vw] ${sizes[size]} max-h-[92vh] flex flex-col my-auto`}>
-        <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100 shrink-0">
-          <h3 className="text-base sm:text-lg font-semibold text-primary truncate pr-2">{title}</h3>
+      <div className={`bg-white rounded-2xl shadow-2xl border border-[#E2E7E4] overflow-hidden w-full max-w-[96vw] ${sizes[size]} max-h-[92vh] flex flex-col my-auto`}>
+        <div className="flex items-center justify-between px-4 py-3.5 sm:px-6 sm:py-4 bg-[#16241F] border-b border-white/10 shrink-0">
+          <h3 className="text-base sm:text-lg font-semibold text-white truncate pr-2">{title}</h3>
           {showCloseButton && (
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors shrink-0"
+              className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition-colors shrink-0"
               title="Cerrar ventana"
             >
-              <X size={18} className="text-gray-500" />
+              <X size={18} />
             </button>
           )}
         </div>
-        <div className="overflow-y-auto flex-1 p-3 sm:p-6">{children}</div>
+        <div className="overflow-y-auto flex-1 p-3 sm:p-6 bg-white">{children}</div>
       </div>
     </div>
   )

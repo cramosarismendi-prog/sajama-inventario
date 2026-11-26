@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
-import { Package, Eye, EyeOff, AlertTriangle } from 'lucide-react'
+import { Eye, EyeOff, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 import { registrarAccion } from '../services/auditoria'
 import letreroSajama from '../assets/letrero-sajama.jpg'
+import logoSajama from '../assets/logo-sajama.jpg'
 
 export default function Login() {
   const { t } = useTranslation()
@@ -92,8 +93,8 @@ export default function Login() {
             className="px-8 py-8 text-center rounded-t-2xl border-t border-x border-white/15 backdrop-blur-[12px]"
             style={{ backgroundColor: 'rgba(22, 36, 31, 0.72)' }}
           >
-            <div className="w-16 h-16 bg-neutral-900/55 border border-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
-              <Package size={32} className="text-white" />
+            <div className="w-20 h-20 rounded-2xl overflow-hidden mx-auto mb-4 border-2 border-[#E4D825]/55 shadow-lg bg-[#FDE200]">
+              <img src={logoSajama} alt="Sajama 4x4" className="w-full h-full object-cover" />
             </div>
             <h1 className="text-2xl font-bold text-white tracking-wide">Sajama.SRL</h1>
             <p className="text-[#D6DDD9]/85 text-sm mt-1">{t('app.subtitle')}</p>

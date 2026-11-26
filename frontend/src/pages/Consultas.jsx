@@ -45,20 +45,21 @@ function imprimirOrdenSalida(o) {
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:9.5pt; color:#111; padding:10mm; }
-.header { display:flex; align-items:center; gap:10px; margin-bottom:6px; border-bottom:2px solid #1a3c6e; padding-bottom:6px; }
-.logo { width:55px; height:50px; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; font-size:7pt; text-align:center; background:#e8eef7; flex-shrink:0; }
+.header { display:flex; align-items:center; gap:10px; margin-bottom:6px; border-bottom:2px solid #16241F; padding-bottom:6px; }
+.logo { width:56px; height:56px; border-radius:8px; overflow:hidden; border:1px solid #16241F; display:flex; align-items:center; justify-content:center; flex-shrink:0; background:#FDE200; }
+.logo img { width:100%; height:100%; object-fit:cover; }
 .htxt { flex:1; text-align:center; }
-.empresa { font-size:16pt; font-weight:700; }
+.empresa { font-size:16pt; font-weight:700; color:#16241F; }
 .dir { font-size:7.5pt; color:#555; margin:2px 0; }
-.titzh { font-size:12pt; font-weight:700; margin-top:3px; }
-.tites { font-size:8.5pt; }
+.titzh { font-size:12pt; font-weight:700; margin-top:3px; color:#16241F; }
+.tites { font-size:8.5pt; color:#233830; }
 .campos { margin:6px 0; }
 .row-campo { display:flex; gap:20px; margin-bottom:4px; font-size:8.5pt; }
 .campo { display:flex; align-items:center; gap:4px; flex:1; }
 .campo b { white-space:nowrap; font-size:8pt; }
 .val { border-bottom:1px solid #777; flex:1; padding:1px 3px; min-height:13px; }
 table { width:100%; border-collapse:collapse; margin:6px 0; font-size:8.5pt; }
-th { background:#d3ddf0; border:1px solid #888; padding:3px 4px; text-align:center; font-weight:700; white-space:pre-line; line-height:1.4; }
+th { background:#E2E7E4; border:1px solid #888; padding:3px 4px; text-align:center; font-weight:700; white-space:pre-line; line-height:1.4; color:#16241F; }
 td { border:1px solid #aaa; padding:2px 4px; height:15px; }
 .total-row td { font-weight:700; background:#f2f2f2; }
 .firmas { display:flex; border:1px solid #999; margin-top:8px; }
@@ -67,7 +68,7 @@ td { border:1px solid #aaa; padding:2px 4px; height:15px; }
 .fc1 { flex:0 0 38%; }
 .fc2 { flex:0 0 17%; display:flex; align-items:center; justify-content:center; }
 .fc3 { flex:1; }
-.sello { width:54px; height:54px; border-radius:50%; border:2px solid #3355aa; display:flex; align-items:center; justify-content:center; text-align:center; font-size:7.5pt; font-weight:700; color:#3355aa; line-height:1.3; }
+.sello { width:54px; height:54px; border-radius:50%; border:2px solid #16241F; display:flex; align-items:center; justify-content:center; text-align:center; font-size:7.5pt; font-weight:700; color:#16241F; line-height:1.3; }
 .lf { border-bottom:1px solid #aaa; margin:6px 0 2px 0; min-height:14px; padding:1px 2px; font-weight:400; }
 .lbl { font-weight:700; margin-top:8px; }
 .nota { color:red; font-size:7.5pt; margin-top:5px; }
@@ -75,7 +76,7 @@ td { border:1px solid #aaa; padding:2px 4px; height:15px; }
 @media print { body{padding:0} }
 </style></head><body>
 <div class="header">
-  <div class="logo">Sajama.SRL</div>
+  <div class="logo"><img src="${window.location.origin}/logo-sajama.jpg" alt="Sajama 4x4" /></div>
   <div class="htxt">
     <div class="empresa">Sajama.SRL &nbsp; 萨哈马</div>
     <div class="dir">El Alto, avenida 6 de marzo (carretera a Oruro) cerca cruce Achocalla</div>
@@ -176,8 +177,9 @@ function imprimirOrdenEntrada(o) {
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Noto Sans SC','Microsoft YaHei','SimSun',Arial,sans-serif; font-size:9.5pt; color:#111; padding:10mm; }
-.header { display:flex; align-items:center; gap:10px; margin-bottom:6px; border-bottom:2px solid #1d7044; padding-bottom:6px; }
-.logo { width:55px; height:50px; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; font-size:7pt; text-align:center; background:#d6efe0; flex-shrink:0; }
+.header { display:flex; align-items:center; gap:10px; margin-bottom:6px; border-bottom:2px solid #15803D; padding-bottom:6px; }
+.logo { width:56px; height:56px; border-radius:8px; overflow:hidden; border:1px solid #16241F; display:flex; align-items:center; justify-content:center; flex-shrink:0; background:#FDE200; }
+.logo img { width:100%; height:100%; object-fit:cover; }
 .htxt { flex:1; text-align:center; }
 .empresa { font-size:16pt; font-weight:700; }
 .dir { font-size:7.5pt; color:#555; margin:2px 0; }
@@ -206,7 +208,7 @@ td { border:1px solid #aaa; padding:2px 4px; height:15px; }
 @media print { body{padding:0} }
 </style></head><body>
 <div class="header">
-  <div class="logo">Sajama.SRL<br/>LOGO</div>
+  <div class="logo"><img src="${window.location.origin}/logo-sajama.jpg" alt="Sajama 4x4" /></div>
   <div class="htxt">
     <div class="empresa">SAJAMA &nbsp; 萨哈马</div>
     <div class="dir">El Alto, avenida 6 de marzo (carretera a Oruro) cerca cruce Achocalla</div>
@@ -1443,7 +1445,7 @@ export default function Consultas() {
                 type="button"
                 onClick={handleDescargarBackupJSON}
                 disabled={ordenesEnRangoPurga.length === 0}
-                className="btn-secondary btn-sm flex items-center gap-1.5 text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100 disabled:opacity-40"
+                className="btn-secondary btn-sm flex items-center gap-1.5 text-[#16241F] border-[#CBD4CF] bg-[#EEF2F0] hover:bg-[#E2E7E4] disabled:opacity-40"
                 title={isZh ? '删除前下载JSON格式的完整数据备份' : 'Descargar copia de respaldo en formato JSON antes de borrar'}
               >
                 <Save size={14}/> {isZh ? '下载JSON备份' : 'Descargar Respaldo JSON'}

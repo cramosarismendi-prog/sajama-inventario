@@ -145,25 +145,26 @@ export function BannerTipoCambio({ showEditButton = true }) {
 
       {/* Modal de edición y sincronización rápida */}
       {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 max-w-sm w-full p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-emerald-100 text-emerald-700 rounded-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-[#E2E7E4] overflow-hidden max-w-sm w-full animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between bg-[#16241F] px-5 py-4 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-white/10 border border-white/15 text-[#E4D825] rounded-xl">
                   <DollarSign className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 text-base">{isZh ? '美元汇率' : 'Cotización del Dólar'}</h3>
-                  <p className="text-xs text-gray-500">{isZh ? '官方央行 / 市场汇率管理与同步' : 'Gestión y Sincronización Oficial BCB / Mercado'}</p>
+                  <h3 className="font-bold text-white text-base">{isZh ? '美元汇率' : 'Cotización del Dólar'}</h3>
+                  <p className="text-xs text-[#D6DDD9]/75">{isZh ? '官方央行 / 市场汇率管理与同步' : 'Gestión y Sincronización Oficial BCB / Mercado'}</p>
                 </div>
               </div>
               <button
                 onClick={() => setModalAbierto(false)}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100"
+                className="text-white/70 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
+            <div className="p-5 space-y-4">
 
             {/* Fuente actual */}
             <div className="p-2.5 bg-gray-50 rounded-xl border border-gray-200/80 text-xs text-gray-600 space-y-1">
@@ -261,7 +262,7 @@ export function BannerTipoCambio({ showEditButton = true }) {
                 <button
                   type="submit"
                   disabled={guardando || sincronizando}
-                  className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+                  className="px-4 py-2 text-xs font-bold text-white bg-[#16241F] hover:bg-[#233830] rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
                 >
                   {guardando ? (
                     <>
@@ -274,6 +275,7 @@ export function BannerTipoCambio({ showEditButton = true }) {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}

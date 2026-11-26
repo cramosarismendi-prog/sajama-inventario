@@ -56,7 +56,7 @@ export function ChangePasswordModal({ open, onClose }) {
   return (
     <Modal open={open} onClose={limpiarYCerrar} title="Cambiar mi contraseña" size="sm">
       <form onSubmit={onSubmit} className="space-y-4">
-        <div className="bg-blue-50 rounded-lg p-3 text-xs text-primary flex items-start gap-2">
+        <div className="bg-[#EEF2F0] border border-[#DCE3DF] rounded-lg p-3 text-xs text-[#16241F] flex items-start gap-2">
           <KeyRound size={14} className="shrink-0 mt-0.5"/>
           <span>Este cambio solo afecta a tu propia cuenta. Necesitas confirmar tu contraseña actual.</span>
         </div>

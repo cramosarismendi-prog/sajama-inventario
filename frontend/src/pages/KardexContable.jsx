@@ -339,15 +339,15 @@ function CapaCatalogo({ catalogoData, busqueda, setBusqueda }) {
           <p className="text-xs text-gray-500 mt-2">{isZh ? '账面总经济价值' : 'Valor económico total en libros'}</p>
         </div>
 
-        <div className="card p-4 bg-gradient-to-br from-blue-50 to-white border-blue-100">
+        <div className="card p-4 bg-gradient-to-br from-[#EEF2F0] to-white border-[#DCE3DF]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider">{isZh ? '实物总件数' : 'Unidades Físicas'}</p>
-              <p className="text-2xl font-black text-blue-800 mt-1">
+              <p className="text-xs font-semibold text-[#233830] uppercase tracking-wider">{isZh ? '实物总件数' : 'Unidades Físicas'}</p>
+              <p className="text-2xl font-black text-[#16241F] mt-1">
                 {(kpis.totalUnidadesFisicas || 0).toLocaleString()}
               </p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-700">
+            <div className="w-12 h-12 bg-[#16241F]/10 rounded-2xl flex items-center justify-center text-[#16241F]">
               <Layers size={24} />
             </div>
           </div>
@@ -551,7 +551,7 @@ function CapaKardex({
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
                           esEntrada ? 'bg-emerald-100 text-emerald-800' :
                           esSalida ? 'bg-rose-100 text-rose-800' :
-                          'bg-blue-100 text-blue-800'
+                          'bg-[#EDF1EF] text-[#1E2E28]'
                         }`}>
                           {esEntrada && <ArrowUpRight size={12}/>}
                           {esSalida && <ArrowDownRight size={12}/>}
@@ -709,11 +709,11 @@ function CapaAuditoria({ conciliaciones, onVerConciliacion, onIniciarConteo, can
 
   return (
     <div className="space-y-4">
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3 text-blue-900 text-xs">
-        <Scale size={20} className="shrink-0 text-blue-700 mt-0.5" />
+      <div className="bg-[#EEF2F0] border border-[#CBD4CF] rounded-xl p-4 flex items-start gap-3 text-[#16241F] text-xs">
+        <Scale size={20} className="shrink-0 text-[#233830] mt-0.5" />
         <div>
           <b className="text-sm">{isZh ? '盲盘盘点与实物调账协议' : 'Protocolo de Conteo Ciego'}</b>
-          <p className="mt-1 text-blue-800 leading-relaxed">
+          <p className="mt-1 text-[#374540] leading-relaxed">
             {isZh
               ? '通过盲盘对比仓库物理库存与系统账面结余，计算差额与经济影响，可一键在卡片账中自动生成盘盈/盘亏调账分录。'
               : 'Protocolo de auditoría física para contrastar existencias en almacén con saldos teóricos en libros. Permite generar ajustes automáticos de faltantes y sobrantes.'}
@@ -756,13 +756,13 @@ function CapaAuditoria({ conciliaciones, onVerConciliacion, onIniciarConteo, can
                       <td className="py-3 px-4 text-center font-bold">
                         <span className={`px-2 py-0.5 rounded-full ${
                           difTotal === 0 ? 'bg-emerald-100 text-emerald-800' :
-                          difTotal > 0 ? 'bg-blue-100 text-blue-800' : 'bg-rose-100 text-rose-800'
+                          difTotal > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
                         }`}>
                           {difTotal > 0 ? `+${difTotal}` : difTotal} un.
                         </span>
                       </td>
                       <td className={`py-3 px-4 text-right font-black ${
-                        impacto === 0 ? 'text-gray-600' : impacto > 0 ? 'text-blue-700' : 'text-rose-700'
+                        impacto === 0 ? 'text-gray-600' : impacto > 0 ? 'text-emerald-700' : 'text-rose-700'
                       }`}>
                         {impacto.toLocaleString(undefined, { minimumFractionDigits: 2 })} Bs
                       </td>
@@ -1168,7 +1168,7 @@ function ModalConteoCiego({ items, perfil, onCerrar, onExito }) {
                     {!modoCiego && (
                       <td className="py-2 px-3 text-center font-bold">
                         <span className={`px-2 py-0.5 rounded ${
-                          dif === 0 ? 'text-gray-400' : dif > 0 ? 'bg-blue-100 text-blue-800' : 'bg-rose-100 text-rose-800'
+                          dif === 0 ? 'text-gray-400' : dif > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
                         }`}>
                           {dif > 0 ? `+${dif}` : dif}
                         </span>
@@ -1176,7 +1176,7 @@ function ModalConteoCiego({ items, perfil, onCerrar, onExito }) {
                     )}
                     {!modoCiego && (
                       <td className={`py-2 px-3 text-right font-bold ${
-                        imp === 0 ? 'text-gray-400' : imp > 0 ? 'text-blue-700' : 'text-rose-700'
+                        imp === 0 ? 'text-gray-400' : imp > 0 ? 'text-emerald-700' : 'text-rose-700'
                       }`}>
                         {imp.toLocaleString(undefined, { minimumFractionDigits: 2 })} Bs
                       </td>
@@ -1438,19 +1438,19 @@ function ModalDetalleConciliacion({ conciliacion, onCerrar }) {
                   <td className="py-2 px-3 text-center font-bold">{it.conteoFisico}</td>
                   <td className="py-2 px-3 text-center font-bold">
                     <span className={`px-2 py-0.5 rounded ${
-                      it.diferencia === 0 ? 'text-gray-400' : it.diferencia > 0 ? 'bg-blue-100 text-blue-800' : 'bg-rose-100 text-rose-800'
+                      it.diferencia === 0 ? 'text-gray-400' : it.diferencia > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
                     }`}>
                       {it.diferencia > 0 ? `+${it.diferencia}` : it.diferencia}
                     </span>
                   </td>
                   <td className="py-2 px-3 text-right text-gray-600">{(it.costoUnitario || 0).toLocaleString()} Bs</td>
                   <td className={`py-2 px-3 text-right font-bold ${
-                    it.impactoEconomicoBs === 0 ? 'text-gray-400' : it.impactoEconomicoBs > 0 ? 'text-blue-700' : 'text-rose-700'
+                    it.impactoEconomicoBs === 0 ? 'text-gray-400' : it.impactoEconomicoBs > 0 ? 'text-emerald-700' : 'text-rose-700'
                   }`}>
                     {(it.impactoEconomicoBs || 0).toLocaleString()} Bs
                   </td>
                   <td className="py-2 px-3 text-center">
-                    <Badge tipo={it.diferencia === 0 ? 'green' : it.diferencia > 0 ? 'blue' : 'red'}>
+                    <Badge tipo={it.diferencia === 0 ? 'green' : it.diferencia > 0 ? 'neutral' : 'red'}>
                       {it.diferencia === 0 ? (isZh ? '准确' : 'Exacto') : it.diferencia > 0 ? (isZh ? '盘盈' : 'Sobrante') : (isZh ? '盘亏' : 'Faltante')}
                     </Badge>
                   </td>

@@ -35,11 +35,11 @@ const EMPRESAS = [
 
 const ESTADOS = [
   { id: 'A la venta',      label: 'A la venta',      labelZh: '待售',      color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
-  { id: 'En operación',    label: 'En operación',    labelZh: '运行中',    color: 'bg-blue-100 text-blue-800 border-blue-300' },
+  { id: 'En operación',    label: 'En operación',    labelZh: '运行中',    color: 'bg-[#16241F] text-[#E4D825] border-[#233830]' },
   { id: 'En mantenimiento',label: 'En mantenimiento',labelZh: '维修中',    color: 'bg-amber-100 text-amber-800 border-amber-300' },
   { id: 'Vendido',         label: 'Vendido',         labelZh: '已售',      color: 'bg-purple-100 text-purple-800 border-purple-300' },
-  { id: 'Despachado',      label: 'Despachado',      labelZh: '已派送',    color: 'bg-indigo-100 text-indigo-800 border-indigo-300' },
-  { id: 'Entregado',       label: 'Entregado',       labelZh: '已交付',    color: 'bg-cyan-100 text-cyan-800 border-cyan-300' },
+  { id: 'Despachado',      label: 'Despachado',      labelZh: '已派送',    color: 'bg-[#EDF1EF] text-[#16241F] border-[#CBD4CF]' },
+  { id: 'Entregado',       label: 'Entregado',       labelZh: '已交付',    color: 'bg-teal-100 text-teal-800 border-teal-300' },
   { id: 'Existente',       label: 'Existente',       labelZh: '在库',      color: 'bg-slate-100 text-slate-800 border-slate-300' }
 ]
 
@@ -823,7 +823,7 @@ td { border:1px solid #777; padding:4px 4px; }
 }
 </style></head><body>
 <div class="header">
-  <div class="logo">Sajama.SRL</div>
+  <div class="logo" style="display:flex;align-items:center;gap:8px"><img src="${window.location.origin}/logo-sajama.jpg" alt="Sajama 4x4" style="width:42px;height:42px;border-radius:7px;object-fit:cover;border:1px solid #16241F" /><span>Sajama.SRL</span></div>
   <div class="htxt">
     <div class="titzh">SAJAMA 公司工程机械设备销售与过户确认单</div>
     <div class="tites">Formulario de Confirmación de Venta y Transferencia de Maquinaria y Equipos - SAJAMA</div>
@@ -1036,7 +1036,7 @@ td { border:1px solid #777; padding:4px 4px; }
 }
 </style></head><body>
 <div class="header">
-  <div class="logo">Sajama.SRL</div>
+  <div class="logo" style="display:flex;align-items:center;gap:8px"><img src="${window.location.origin}/logo-sajama.jpg" alt="Sajama 4x4" style="width:42px;height:42px;border-radius:7px;object-fit:cover;border:1px solid #16241F" /><span>Sajama.SRL</span></div>
   <div class="htxt">
     <div class="titzh">SAJAMA 公司工程机械设备运输与交付确认单</div>
     <div class="tites">Formulario de Confirmación de Transporte y Entregas - SAJAMA</div>
@@ -1170,23 +1170,23 @@ function imprimirPlanillaMaquinaria(maquinas) {
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:8.5pt; color:#111; padding:6mm 8mm; }
-.header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; border-bottom:2px solid #1a3c6e; padding-bottom:6px; }
-.logo { font-size:16pt; font-weight:900; color:#1a3c6e; }
+.header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; border-bottom:2px solid #16241F; padding-bottom:6px; }
+.logo { font-size:16pt; font-weight:900; color:#16241F; }
 .htxt { flex:1; text-align:center; }
-.titzh { font-size:14pt; font-weight:700; }
-.tites { font-size:10pt; color:#1a3c6e; font-weight:600; margin-top:2px; }
+.titzh { font-size:14pt; font-weight:700; color:#16241F; }
+.tites { font-size:10pt; color:#233830; font-weight:600; margin-top:2px; }
 
 table { width:100%; border-collapse:collapse; margin-top:8px; font-size:8pt; }
-th { background:#e2e8f0; border:1px solid #555; padding:5px 4px; text-align:center; font-weight:700; line-height:1.2; font-size:8pt; }
+th { background:#E2E7E4; border:1px solid #555; padding:5px 4px; text-align:center; font-weight:700; line-height:1.2; font-size:8pt; color:#16241F; }
 td { border:1px solid #777; padding:4px 6px; }
 .total-row td { font-weight:700; background:#f1f5f9; }
-.badge { display:inline-block; padding:2px 6px; border-radius:4px; font-size:7.5pt; font-weight:bold; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; }
+.badge { display:inline-block; padding:2px 6px; border-radius:4px; font-size:7.5pt; font-weight:bold; background:#EEF2F0; color:#16241F; border:1px solid #CBD4CF; }
 
 @page { size:A4 landscape; margin:8mm 8mm; }
 @media print { body { padding:0; } }
 </style></head><body>
 <div class="header">
-  <div class="logo">Sajama.SRL</div>
+  <div class="logo" style="display:flex;align-items:center;gap:8px"><img src="${window.location.origin}/logo-sajama.jpg" alt="Sajama 4x4" style="width:42px;height:42px;border-radius:7px;object-fit:cover;border:1px solid #16241F" /><span>Sajama.SRL</span></div>
   <div class="htxt">
     <div class="titzh">SAJAMA 公司工程机械设备清单</div>
     <div class="tites">Planilla de Control de Maquinaria y Equipos Pesados - SAJAMA</div>
@@ -1252,23 +1252,23 @@ function imprimirPlanillaRegistroMaquinaria(registros) {
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:8.5pt; color:#111; padding:6mm 8mm; }
-.header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; border-bottom:2px solid #1a3c6e; padding-bottom:6px; }
-.logo { font-size:16pt; font-weight:900; color:#1a3c6e; }
+.header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; border-bottom:2px solid #16241F; padding-bottom:6px; }
+.logo { font-size:16pt; font-weight:900; color:#16241F; }
 .htxt { flex:1; text-align:center; }
-.titzh { font-size:13pt; font-weight:700; }
-.tites { font-size:9.5pt; color:#1a3c6e; font-weight:600; margin-top:2px; }
+.titzh { font-size:13pt; font-weight:700; color:#16241F; }
+.tites { font-size:9.5pt; color:#233830; font-weight:600; margin-top:2px; }
 
 table { width:100%; border-collapse:collapse; margin-top:8px; font-size:8pt; }
-th { background:#e2e8f0; border:1px solid #555; padding:5px 4px; text-align:center; font-weight:700; line-height:1.2; font-size:8pt; }
+th { background:#E2E7E4; border:1px solid #555; padding:5px 4px; text-align:center; font-weight:700; line-height:1.2; font-size:8pt; color:#16241F; }
 td { border:1px solid #777; padding:4px 6px; }
 .total-row td { font-weight:700; background:#f1f5f9; }
-.badge { display:inline-block; padding:2px 6px; border-radius:4px; font-size:7.5pt; font-weight:bold; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; }
+.badge { display:inline-block; padding:2px 6px; border-radius:4px; font-size:7.5pt; font-weight:bold; background:#EEF2F0; color:#16241F; border:1px solid #CBD4CF; }
 
 @page { size:A4 landscape; margin:8mm 8mm; }
 @media print { body { padding:0; } }
 </style></head><body>
 <div class="header">
-  <div class="logo">Sajama.SRL</div>
+  <div class="logo" style="display:flex;align-items:center;gap:8px"><img src="${window.location.origin}/logo-sajama.jpg" alt="Sajama 4x4" style="width:42px;height:42px;border-radius:7px;object-fit:cover;border:1px solid #16241F" /><span>Sajama.SRL</span></div>
   <div class="htxt">
     <div class="titzh">SAJAMA 公司工程机械设备操作与交易记录清单</div>
     <div class="tites">Planilla de Registro de Procesos y Transacciones de Maquinaria - SAJAMA</div>
@@ -1561,8 +1561,8 @@ function ModalRegistroMaquinaria({ open, onClose, maquinas }) {
 
               const badgeClass =
                 estadoOp === 'VENDIDO' ? 'bg-purple-100 text-purple-800 border-purple-300' :
-                estadoOp === 'DESPACHADO' ? 'bg-indigo-100 text-indigo-800 border-indigo-300' :
-                'bg-cyan-100 text-cyan-800 border-cyan-300'
+                estadoOp === 'DESPACHADO' ? 'bg-[#EDF1EF] text-[#16241F] border-[#CBD4CF]' :
+                'bg-teal-100 text-teal-800 border-teal-300'
 
               return (
                 <div key={item.id} className="p-3.5 bg-white rounded-xl border border-gray-200 text-xs shadow-sm hover:border-primary/40 transition-colors space-y-2">

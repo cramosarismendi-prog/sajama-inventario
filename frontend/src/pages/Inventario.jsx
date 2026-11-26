@@ -39,7 +39,7 @@ const FilaInventario = memo(({ item, isZh, canEdit, setVerFoto, setEdit, setModa
       }
     </td>
     {/* Código */}
-    <td className="td font-mono text-primary font-semibold">{item.codigo}</td>
+    <td className="td font-mono text-[#1E2E28] font-semibold">{item.codigo}</td>
     {/* Descripción ES */}
     <td className="td font-medium max-w-[180px]">
       <div className="truncate" title={item.descripcion}>{item.descripcion}</div>
@@ -55,12 +55,12 @@ const FilaInventario = memo(({ item, isZh, canEdit, setVerFoto, setEdit, setModa
       {item.serie ? (
         esDuplicado ? (
           <span
-            className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2 py-0.5 rounded text-xs shadow-sm"
+            className="inline-flex items-center gap-1 bg-orange-100 text-orange-900 border border-orange-300 font-bold px-2 py-0.5 rounded text-xs shadow-sm"
             title={isZh ? '⚠️ 序列号在库存中重复' : '⚠️ Número de serie duplicado en el inventario'}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
             {item.serie}
-            <span className="text-[10px] bg-amber-200 text-amber-800 px-1 rounded ml-0.5">Dup</span>
+            <span className="text-[10px] bg-orange-200 text-orange-900 px-1 rounded ml-0.5">Dup</span>
           </span>
         ) : (
           <span className="text-gray-600">{item.serie}</span>
@@ -72,14 +72,14 @@ const FilaInventario = memo(({ item, isZh, canEdit, setVerFoto, setEdit, setModa
     {/* Modelo */}
     <td className="td text-gray-500 text-xs">{item.modelo || '—'}</td>
     {/* Categoría */}
-    <td className="td"><Badge tipo="blue">{item.categoria || '—'}</Badge></td>
+    <td className="td"><Badge tipo="neutral">{item.categoria || '—'}</Badge></td>
     {/* Empresa */}
     <td className="td font-semibold text-xs text-gray-700">{item.empresa || 'SAJAMA S.R.L.'}</td>
     {/* Ubicación */}
     <td className="td">
       {item.ubicacion
         ? <span className="flex items-center gap-1 text-xs text-gray-600">
-            <MapPin size={12} className="text-primary-light shrink-0" />{item.ubicacion}
+            <MapPin size={12} className="text-[#374540] shrink-0" />{item.ubicacion}
           </span>
         : <span className="text-gray-300 text-xs">—</span>}
     </td>
@@ -102,7 +102,7 @@ const FilaInventario = memo(({ item, isZh, canEdit, setVerFoto, setEdit, setModa
       <td className="td">
         <div className="flex gap-1.5">
           <button onClick={() => { setEdit(item); setModal(true) }}
-            className="p-1.5 rounded-lg hover:bg-primary-pale text-primary transition-colors" title={t('common.editar')}>
+            className="p-1.5 rounded-lg hover:bg-[#EEF2F0] text-[#1E2E28] transition-colors" title={t('common.editar')}>
             <Edit2 size={14} />
           </button>
           <button onClick={() => setDel(item)}
@@ -176,11 +176,11 @@ export default function Inventario() {
   }, [items, busqueda, catFiltro, empresaFiltro])
 
   const kpis = useMemo(() => [
-    { label: i18n.language === 'zh' ? '总项目' : 'Total ítems',   val: items.length, color: 'bg-primary-pale text-primary' },
-    { label: i18n.language === 'zh' ? '有库存' : 'Con stock',      val: items.filter(i => i.stock > 0).length, color: 'bg-green-50 text-green-700' },
-    { label: i18n.language === 'zh' ? '无库存' : 'Sin stock',      val: items.filter(i => !i.stock || i.stock === 0).length, color: 'bg-red-50 text-red-700' },
-    { label: i18n.language === 'zh' ? '重复序列号' : 'Series duplicadas', val: items.filter(i => i.serie && seriesDuplicadas.has(i.serie.toString().trim().toLowerCase())).length, color: 'bg-amber-50 text-amber-800' },
-    { label: i18n.language === 'zh' ? '无价格' : 'Sin precio',     val: items.filter(i => !i.precio || i.precio === 0).length, color: 'bg-yellow-50 text-yellow-700' },
+    { label: i18n.language === 'zh' ? '总项目' : 'Total ítems',         val: items.length,                                                                                                    bar: 'border-t-[#16241F]', num: 'text-[#16241F]' },
+    { label: i18n.language === 'zh' ? '有库存' : 'Con stock',           val: items.filter(i => i.stock > 0).length,                                                                           bar: 'border-t-[#15803D]', num: 'text-[#15803D]' },
+    { label: i18n.language === 'zh' ? '无库存' : 'Sin stock',           val: items.filter(i => !i.stock || i.stock === 0).length,                                                             bar: 'border-t-[#DC2626]', num: 'text-[#DC2626]' },
+    { label: i18n.language === 'zh' ? '重复序列号' : 'Series duplicadas', val: items.filter(i => i.serie && seriesDuplicadas.has(i.serie.toString().trim().toLowerCase())).length,            bar: 'border-t-[#EA580C]', num: 'text-[#C2410C]' },
+    { label: i18n.language === 'zh' ? '无价格' : 'Sin precio',          val: items.filter(i => !i.precio || i.precio === 0).length,                                                           bar: 'border-t-[#B45309]', num: 'text-[#B45309]' },
   ], [items, i18n.language, seriesDuplicadas])
 
   const totalPaginas = useMemo(() => {
@@ -242,18 +242,18 @@ export default function Inventario() {
           </button>
           {canEdit && (
             <button onClick={() => { setEdit(null); setModal(true) }} className="btn-primary btn-sm">
-              <Plus size={14} /> {t('common.nuevo')}
+              <Plus size={14} className="text-[#E4D825]" /> {t('common.nuevo')}
             </button>
           )}
         </div>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {kpis.map(c => (
-          <div key={c.label} className={`rounded-xl p-4 ${c.color}`}>
-            <p className="text-2xl font-bold">{c.val}</p>
-            <p className="text-xs font-medium mt-0.5">{c.label}</p>
+          <div key={c.label} className={`bg-white rounded-xl p-4 border border-[#E2E7E4] border-t-4 shadow-xs ${c.bar}`}>
+            <p className={`text-2xl font-bold ${c.num}`}>{c.val}</p>
+            <p className="text-xs font-medium text-[#374540] mt-0.5">{c.label}</p>
           </div>
         ))}
       </div>

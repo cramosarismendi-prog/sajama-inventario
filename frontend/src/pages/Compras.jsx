@@ -116,19 +116,20 @@ function imprimirFormularioGenerico(cfg) {
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:9pt; color:#111; padding:12mm; }
-.header { display:flex; align-items:center; gap:10px; margin-bottom:6px; border-bottom:2px solid #1a3c6e; padding-bottom:6px; }
-.logo { width:55px; height:50px; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; font-size:7pt; text-align:center; background:#e8eef7; flex-shrink:0; }
+.header { display:flex; align-items:center; gap:10px; margin-bottom:6px; border-bottom:2px solid #16241F; padding-bottom:6px; }
+.logo { width:56px; height:56px; border-radius:8px; overflow:hidden; border:1px solid #16241F; display:flex; align-items:center; justify-content:center; flex-shrink:0; background:#FDE200; }
+.logo img { width:100%; height:100%; object-fit:cover; }
 .htxt { flex:1; text-align:center; }
-.empresa { font-size:16pt; font-weight:700; }
-.titzh { font-size:12pt; font-weight:700; margin-top:3px; }
-.tites { font-size:8.5pt; }
+.empresa { font-size:16pt; font-weight:700; color:#16241F; }
+.titzh { font-size:12pt; font-weight:700; margin-top:3px; color:#16241F; }
+.tites { font-size:8.5pt; color:#233830; }
 .campos { margin:6px 0; }
 .row-campo { display:flex; gap:20px; margin-bottom:4px; font-size:8.5pt; }
 .campo { display:flex; align-items:center; gap:4px; flex:1; }
 .campo b { white-space:nowrap; font-size:8pt; }
 .val { border-bottom:1px solid #777; flex:1; padding:1px 3px; min-height:13px; }
 table { width:100%; border-collapse:collapse; margin:6px 0; font-size:8.5pt; }
-th { background:#d3ddf0; border:1px solid #888; padding:3px 4px; text-align:center; font-weight:700; white-space:pre-line; line-height:1.4; }
+th { background:#E2E7E4; border:1px solid #888; padding:3px 4px; text-align:center; font-weight:700; white-space:pre-line; line-height:1.4; color:#16241F; }
 td { border:1px solid #aaa; padding:2px 4px; height:15px; }
 .total-row td { font-weight:700; background:#f2f2f2; }
 .firmas { display:flex; border:1px solid #999; margin-top:10px; }
@@ -140,7 +141,7 @@ td { border:1px solid #aaa; padding:2px 4px; height:15px; }
 @media print { body{padding:0} }
 </style></head><body>
 <div class="header">
-  <div class="logo">Sajama.SRL</div>
+  <div class="logo"><img src="${window.location.origin}/logo-sajama.jpg" alt="Sajama 4x4" /></div>
   <div class="htxt">
     <div class="empresa">Sajama.SRL &nbsp; 萨哈马</div>
     <div class="titzh">${tituloZh || ''}</div>
@@ -336,15 +337,15 @@ function FormularioGenerico({
       </div>
 
       {registroExistente && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm text-primary">
+        <div className="bg-[#EEF2F0] border border-[#CBD4CF] rounded-lg px-3 py-2 text-sm text-[#16241F]">
           {isZh ? `✏️ 正在编辑已有单据 N° ${numero}。保存后将直接更新此记录。` : `✏️ Editando registro existente N° ${numero}. Al guardar se actualizará este mismo documento.`}
         </div>
       )}
 
-      <div className="overflow-x-auto border border-gray-200 rounded-xl">
+      <div className="overflow-x-auto border border-[#E2E7E4] rounded-xl">
         <table className="w-full text-xs">
           <thead>
-            <tr className="bg-blue-50">
+            <tr className="bg-[#F4F6F5]">
               <th className="th w-8 text-center">{isZh ? '序号' : '#'}</th>
               <th className="th">{isZh ? '物料描述 (西文)' : 'Descripción'}</th>
               <th className="th">{isZh ? '中文名称' : 'Nombre Chino'}</th>

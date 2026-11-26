@@ -34,7 +34,7 @@ const ESTADOS = [
   { id: 'A la venta',  label: 'A la venta',  labelZh: '待售',  color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
   { id: 'Vendido',     label: 'Vendido',     labelZh: '已售',  color: 'bg-amber-100 text-amber-800 border-amber-300' },
   { id: 'Despachado',  label: 'Despachado',  labelZh: '已派送',color: 'bg-purple-100 text-purple-800 border-purple-300' },
-  { id: 'Entregado',   label: 'Entregado',   labelZh: '已交付',color: 'bg-blue-100 text-blue-800 border-blue-300' },
+  { id: 'Entregado',   label: 'Entregado',   labelZh: '已交付',color: 'bg-[#16241F] text-[#E4D825] border-[#233830]' },
   { id: 'Existente',   label: 'Existente',   labelZh: '在库',  color: 'bg-slate-100 text-slate-800 border-slate-300' }
 ]
 
@@ -616,7 +616,7 @@ td { border:1px solid #777; padding:4px 4px; }
 }
 </style></head><body>
 <div class="header">
-  <div class="logo">Sajama.SRL</div>
+  <div class="logo" style="display:flex;align-items:center;gap:8px"><img src="${window.location.origin}/logo-sajama.jpg" alt="Sajama 4x4" style="width:42px;height:42px;border-radius:7px;object-fit:cover;border:1px solid #16241F" /><span>Sajama.SRL</span></div>
   <div class="htxt">
     <div class="titzh">SAJAMA 公司设备销售与过户确认单</div>
     <div class="tites">Formulario de Confirmación de Venta y Transferencia de Equipos - SAJAMA</div>
@@ -832,7 +832,7 @@ td { border:1px solid #777; padding:4px 4px; }
 }
 </style></head><body>
 <div class="header">
-  <div class="logo">Sajama.SRL</div>
+  <div class="logo" style="display:flex;align-items:center;gap:8px"><img src="${window.location.origin}/logo-sajama.jpg" alt="Sajama 4x4" style="width:42px;height:42px;border-radius:7px;object-fit:cover;border:1px solid #16241F" /><span>Sajama.SRL</span></div>
   <div class="htxt">
     <div class="titzh">SAJAMA 公司设备运输与过户确认单</div>
     <div class="tites">Formulario de Confirmación de Transporte y Entregas - SAJAMA</div>
@@ -971,14 +971,14 @@ function imprimirPlanillaEquipos(equipos) {
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:8.5pt; color:#111; padding:6mm 8mm; }
-.header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; border-bottom:2px solid #1a3c6e; padding-bottom:6px; }
-.logo { font-size:16pt; font-weight:900; color:#1a3c6e; }
+.header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; border-bottom:2px solid #16241F; padding-bottom:6px; }
+.logo { font-size:16pt; font-weight:900; color:#16241F; }
 .htxt { flex:1; text-align:center; }
-.titzh { font-size:14pt; font-weight:700; }
-.tites { font-size:10pt; color:#1a3c6e; font-weight:600; margin-top:2px; }
+.titzh { font-size:14pt; font-weight:700; color:#16241F; }
+.tites { font-size:10pt; color:#233830; font-weight:600; margin-top:2px; }
 
 table { width:100%; border-collapse:collapse; margin-top:8px; font-size:8pt; }
-th { background:#e2e8f0; border:1px solid #555; padding:5px 4px; text-align:center; font-weight:700; line-height:1.2; font-size:8pt; }
+th { background:#E2E7E4; border:1px solid #555; padding:5px 4px; text-align:center; font-weight:700; line-height:1.2; font-size:8pt; color:#16241F; }
 td { border:1px solid #777; padding:4px 6px; }
 .total-row td { font-weight:700; background:#f1f5f9; }
 
@@ -986,7 +986,7 @@ td { border:1px solid #777; padding:4px 6px; }
 @media print { body { padding:0; } }
 </style></head><body>
 <div class="header">
-  <div class="logo">Sajama.SRL</div>
+  <div class="logo" style="display:flex;align-items:center;gap:8px"><img src="${window.location.origin}/logo-sajama.jpg" alt="Sajama 4x4" style="width:42px;height:42px;border-radius:7px;object-fit:cover;border:1px solid #16241F" /><span>Sajama.SRL</span></div>
   <div class="htxt">
     <div class="titzh">SAJAMA 公司设备清单</div>
     <div class="tites">Planilla de Control de Equipos - SAJAMA</div>
@@ -1298,7 +1298,7 @@ function ModalRegistroEquipos({ open, onClose, equipos }) {
                   <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                     <button
                       onClick={() => handleVerImprimir(item)}
-                      className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                      className="px-3 py-1.5 bg-[#EEF2F0] text-[#16241F] hover:bg-[#E2E7E4] border border-[#CBD4CF] rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
                       title="Ver / Imprimir Formulario en A4"
                     >
                       <Printer size={13}/> Formulario
@@ -1912,7 +1912,7 @@ export default function Equipos() {
             onClick={() => setTab('vendidos_despachados')}
             className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
               tab === 'vendidos_despachados'
-                ? 'bg-white text-blue-700 shadow-sm font-semibold'
+                ? 'bg-white text-[#16241F] shadow-sm font-semibold'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -2012,7 +2012,7 @@ export default function Equipos() {
                   const fotoMostrar = eq.fotoEquipoUrl || eq.fotoMaquinaUrl
 
                   return (
-                    <tr key={eq.id} className={`hover:bg-gray-50/50 transition-colors ${esSeleccionado ? 'bg-blue-50/60' : ''}`}>
+                    <tr key={eq.id} className={`hover:bg-[#F8FAF9] transition-colors ${esSeleccionado ? 'bg-[#EEF2F0]' : ''}`}>
                       <td className="py-3 px-3">
                         <button onClick={() => toggleSeleccionGrupo(eq)} className="text-primary hover:scale-105 transition-transform">
                           {esSeleccionado ? <CheckSquare size={18}/> : <Square size={18} className="text-gray-300"/>}

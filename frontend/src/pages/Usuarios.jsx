@@ -19,10 +19,10 @@ function MatrizPermisos({ permisos, onChange, soloLectura = false }) {
   const { i18n } = useTranslation()
   const isZh = i18n.language === 'zh'
   const ON = {
-    ver:      'bg-blue-500 text-white border-blue-500',
-    crear:    'bg-green-500 text-white border-green-500',
-    editar:   'bg-yellow-500 text-white border-yellow-500',
-    eliminar: 'bg-red-500 text-white border-red-500',
+    ver:      'bg-[#16241F] text-white border-[#16241F]',
+    crear:    'bg-[#15803D] text-white border-[#15803D]',
+    editar:   'bg-[#B45309] text-white border-[#B45309]',
+    eliminar: 'bg-[#DC2626] text-white border-[#DC2626]',
   }
   return (
     <div className="overflow-x-auto">
@@ -129,14 +129,14 @@ function FormUsuario({ onGuardar, onCancelar }) {
         </select>
       </div>
 
-      <div className="flex items-center gap-2.5 p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl">
+      <div className="flex items-center gap-2.5 p-3 bg-[#EEF2F0] border border-[#CBD4CF] rounded-xl">
         <input
           type="checkbox"
           id="chkEncargadoIT"
-          className="w-4 h-4 text-primary rounded cursor-pointer"
+          className="w-4 h-4 text-[#16241F] accent-[#16241F] rounded cursor-pointer"
           {...register('esEncargadoIT')}
         />
-        <label htmlFor="chkEncargadoIT" className="text-xs font-semibold text-indigo-900 cursor-pointer select-none">
+        <label htmlFor="chkEncargadoIT" className="text-xs font-semibold text-[#16241F] cursor-pointer select-none">
           {isZh ? '💻 设为IT负责人 (允许配置角色与双因素2FA)' : '💻 Asignar como Encargado de IT (Permiso para gestionar roles y 2FA)'}
         </label>
       </div>
@@ -238,20 +238,20 @@ function EditarPermisos({ usuario, onCerrar }) {
         </button>
       </div>
 
-      <div className="flex items-center gap-2.5 p-3 bg-indigo-50 border border-indigo-200 rounded-xl">
+      <div className="flex items-center gap-2.5 p-3 bg-[#EEF2F0] border border-[#CBD4CF] rounded-xl">
         <input
           type="checkbox"
           id="chkEditEncargadoIT"
           checked={esEncargadoIT}
           onChange={e => setEsEncargadoIT(e.target.checked)}
-          className="w-4 h-4 text-primary rounded cursor-pointer"
+          className="w-4 h-4 text-[#16241F] accent-[#16241F] rounded cursor-pointer"
         />
-        <label htmlFor="chkEditEncargadoIT" className="text-xs font-semibold text-indigo-900 cursor-pointer select-none">
+        <label htmlFor="chkEditEncargadoIT" className="text-xs font-semibold text-[#16241F] cursor-pointer select-none">
           {isZh ? '💻 设为IT负责人 (允许配置角色与双因素2FA)' : '💻 Asignar como Encargado de IT (Permiso para gestionar roles y 2FA)'}
         </label>
       </div>
 
-      <div className="bg-blue-50 rounded-lg p-3 text-xs text-blue-700">
+      <div className="bg-[#EEF2F0] border border-[#DCE3DF] rounded-lg p-3 text-xs text-[#16241F]">
         <b>{isZh ? '查看' : 'Ver'}</b> = {isZh ? '访问模块' : 'acceder al módulo'} &nbsp;·&nbsp;
         <b>{isZh ? '新建' : 'Crear'}</b> = {isZh ? '添加记录' : 'agregar registros'} &nbsp;·&nbsp;
         <b>{isZh ? '编辑' : 'Editar'}</b> = {isZh ? '修改内容' : 'modificar'} &nbsp;·&nbsp;
@@ -472,7 +472,7 @@ export default function Usuarios() {
                           <span className="text-sm font-medium">{rolLabel(u.rol)}</span>
                         </div>
                         {u.esEncargadoIT && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded w-max">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#E4D825] bg-[#16241F] border border-[#233830] px-1.5 py-0.5 rounded w-max">
                             💻 {isZh ? 'IT负责人' : 'Encargado IT'}
                           </span>
                         )}

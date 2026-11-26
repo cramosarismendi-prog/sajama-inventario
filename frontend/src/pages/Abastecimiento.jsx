@@ -49,14 +49,14 @@ function imprimirPlanillaEntradas(entradas) {
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:8.5pt; color:#111; padding:6mm 8mm; }
-.header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; border-bottom:2px solid #1a3c6e; padding-bottom:6px; }
-.logo { font-size:16pt; font-weight:900; color:#1a3c6e; }
+.header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; border-bottom:2px solid #16241F; padding-bottom:6px; }
+.logo { font-size:16pt; font-weight:900; color:#16241F; }
 .htxt { flex:1; text-align:center; }
-.titzh { font-size:14pt; font-weight:700; }
-.tites { font-size:10pt; color:#1a3c6e; font-weight:600; margin-top:2px; }
+.titzh { font-size:14pt; font-weight:700; color:#16241F; }
+.tites { font-size:10pt; color:#233830; font-weight:600; margin-top:2px; }
 
 table { width:100%; border-collapse:collapse; margin-top:8px; font-size:8pt; }
-th { background:#e2e8f0; border:1px solid #555; padding:5px 4px; text-align:center; font-weight:700; line-height:1.2; font-size:8pt; }
+th { background:#E2E7E4; border:1px solid #555; padding:5px 4px; text-align:center; font-weight:700; line-height:1.2; font-size:8pt; color:#16241F; }
 td { border:1px solid #777; padding:4px 6px; }
 .total-row td { font-weight:700; background:#f1f5f9; }
 
@@ -64,7 +64,7 @@ td { border:1px solid #777; padding:4px 6px; }
 @media print { body { padding:0; } }
 </style></head><body>
 <div class="header">
-  <div class="logo">Sajama.SRL</div>
+  <div class="logo" style="display:flex;align-items:center;gap:8px"><img src="${window.location.origin}/logo-sajama.jpg" alt="Sajama 4x4" style="width:42px;height:42px;border-radius:7px;object-fit:cover;border:1px solid #16241F" /><span>Sajama.SRL</span></div>
   <div class="htxt">
     <div class="titzh">SAJAMA 公司燃油采购与入库清单</div>
     <div class="tites">Planilla de Registro de Entradas y Compras de Combustible - SAJAMA</div>
@@ -137,14 +137,14 @@ function imprimirPlanillaDespachos(salidas) {
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:8.5pt; color:#111; padding:6mm 8mm; }
-.header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; border-bottom:2px solid #1a3c6e; padding-bottom:6px; }
-.logo { font-size:16pt; font-weight:900; color:#1a3c6e; }
+.header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; border-bottom:2px solid #16241F; padding-bottom:6px; }
+.logo { font-size:16pt; font-weight:900; color:#16241F; }
 .htxt { flex:1; text-align:center; }
-.titzh { font-size:14pt; font-weight:700; }
-.tites { font-size:10pt; color:#1a3c6e; font-weight:600; margin-top:2px; }
+.titzh { font-size:14pt; font-weight:700; color:#16241F; }
+.tites { font-size:10pt; color:#233830; font-weight:600; margin-top:2px; }
 
 table { width:100%; border-collapse:collapse; margin-top:8px; font-size:8pt; }
-th { background:#e2e8f0; border:1px solid #555; padding:5px 4px; text-align:center; font-weight:700; line-height:1.2; font-size:8pt; }
+th { background:#E2E7E4; border:1px solid #555; padding:5px 4px; text-align:center; font-weight:700; line-height:1.2; font-size:8pt; color:#16241F; }
 td { border:1px solid #777; padding:4px 6px; }
 .total-row td { font-weight:700; background:#f1f5f9; }
 
@@ -152,7 +152,7 @@ td { border:1px solid #777; padding:4px 6px; }
 @media print { body { padding:0; } }
 </style></head><body>
 <div class="header">
-  <div class="logo">Sajama.SRL</div>
+  <div class="logo" style="display:flex;align-items:center;gap:8px"><img src="${window.location.origin}/logo-sajama.jpg" alt="Sajama 4x4" style="width:42px;height:42px;border-radius:7px;object-fit:cover;border:1px solid #16241F" /><span>Sajama.SRL</span></div>
   <div class="htxt">
     <div class="titzh">SAJAMA 公司燃油加油与派送清单</div>
     <div class="tites">Planilla de Control de Despacho de Combustible - SAJAMA</div>
@@ -205,12 +205,12 @@ function imprimirValeDespacho(despacho) {
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:9pt; color:#111; padding:8mm; }
-.ticket { border:2px solid #1a3c6e; padding:12px; border-radius:6px; background:#fff; max-width:850px; margin:0 auto; }
-.header { display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid #1a3c6e; padding-bottom:8px; margin-bottom:12px; }
-.logo { font-size:18pt; font-weight:900; color:#1a3c6e; }
+.ticket { border:2px solid #16241F; padding:12px; border-radius:6px; background:#fff; max-width:850px; margin:0 auto; }
+.header { display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid #16241F; padding-bottom:8px; margin-bottom:12px; }
+.logo { font-size:18pt; font-weight:900; color:#16241F; }
 .htxt { flex:1; text-align:center; }
-.titzh { font-size:14pt; font-weight:700; }
-.tites { font-size:10pt; color:#1a3c6e; font-weight:600; margin-top:2px; }
+.titzh { font-size:14pt; font-weight:700; color:#16241F; }
+.tites { font-size:10pt; color:#233830; font-weight:600; margin-top:2px; }
 
 .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
 .box { border:1px solid #777; padding:8px 10px; border-radius:4px; background:#fafafa; }
@@ -225,7 +225,7 @@ body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:
 </style></head><body>
 <div class="ticket">
   <div class="header">
-    <div class="logo">Sajama.SRL</div>
+    <div class="logo" style="display:flex;align-items:center;gap:8px"><img src="${window.location.origin}/logo-sajama.jpg" alt="Sajama 4x4" style="width:42px;height:42px;border-radius:7px;object-fit:cover;border:1px solid #16241F" /><span>Sajama.SRL</span></div>
     <div class="htxt">
       <div class="titzh">SAJAMA 公司加油派送凭证</div>
       <div class="tites">VALE DE DESPACHO DE COMBUSTIBLE - SAJAMA</div>
@@ -868,17 +868,17 @@ export default function Abastecimiento() {
         </div>
 
         {/* Card Histórico Salidas */}
-        <div className="card p-4 border-l-4 border-l-indigo-500 flex items-center justify-between shadow-sm">
+        <div className="card p-4 border-l-4 border-l-[#16241F] flex items-center justify-between shadow-sm">
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{isZh ? '累计派送 (出库)' : 'Total Despachado (Salidas)'}</p>
             <h3 className="text-xl font-bold text-gray-800 mt-1">
               {salidas.length} <span className="text-xs text-gray-500 font-normal">{isZh ? '次派送' : 'despachos'}</span>
             </h3>
-            <p className="text-xs text-indigo-600 font-medium mt-1">
+            <p className="text-xs text-[#233830] font-medium mt-1">
               - {salidas.reduce((a, b) => a + (Number(b.cantidad) || 0), 0).toLocaleString()} {isZh ? '升已派送' : 'L despachados'}
             </p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+          <div className="w-12 h-12 rounded-2xl bg-[#EEF2F0] flex items-center justify-center text-[#16241F]">
             <ArrowUpRight size={24}/>
           </div>
         </div>

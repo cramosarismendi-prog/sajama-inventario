@@ -327,20 +327,21 @@ export default function OrdenSalida() {
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Noto Sans SC','Microsoft YaHei',Arial,sans-serif; font-size:9.5pt; color:#111; padding:10mm; }
-.header { display:flex; align-items:center; gap:10px; margin-bottom:6px; border-bottom:2px solid #1a3c6e; padding-bottom:6px; }
-.logo { width:55px; height:50px; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; font-size:7pt; text-align:center; background:#e8eef7; flex-shrink:0; }
+.header { display:flex; align-items:center; gap:10px; margin-bottom:6px; border-bottom:2px solid #16241F; padding-bottom:6px; }
+.logo { width:56px; height:56px; border-radius:8px; overflow:hidden; border:1px solid #16241F; display:flex; align-items:center; justify-content:center; flex-shrink:0; background:#FDE200; }
+.logo img { width:100%; height:100%; object-fit:cover; }
 .htxt { flex:1; text-align:center; }
-.empresa { font-size:16pt; font-weight:700; }
+.empresa { font-size:16pt; font-weight:700; color:#16241F; }
 .dir { font-size:7.5pt; color:#555; margin:2px 0; }
-.titzh { font-size:12pt; font-weight:700; margin-top:3px; }
-.tites { font-size:8.5pt; }
+.titzh { font-size:12pt; font-weight:700; margin-top:3px; color:#16241F; }
+.tites { font-size:8.5pt; color:#233830; }
 .campos { margin:6px 0; }
 .row-campo { display:flex; gap:20px; margin-bottom:4px; font-size:8.5pt; }
 .campo { display:flex; align-items:center; gap:4px; flex:1; }
 .campo b { white-space:nowrap; font-size:8pt; }
 .val { border-bottom:1px solid #777; flex:1; padding:1px 3px; min-height:13px; }
 table { width:100%; border-collapse:collapse; margin:6px 0; font-size:8.5pt; }
-th { background:#d3ddf0; border:1px solid #888; padding:3px 4px; text-align:center; font-weight:700; white-space:pre-line; line-height:1.4; }
+th { background:#E2E7E4; border:1px solid #888; padding:3px 4px; text-align:center; font-weight:700; white-space:pre-line; line-height:1.4; color:#16241F; }
 td { border:1px solid #aaa; padding:2px 4px; height:15px; }
 .total-row td { font-weight:700; background:#f2f2f2; }
 .firmas { display:flex; border:1px solid #999; margin-top:8px; }
@@ -349,7 +350,7 @@ td { border:1px solid #aaa; padding:2px 4px; height:15px; }
 .fc1 { flex:0 0 38%; }
 .fc2 { flex:0 0 17%; }
 .fc3 { flex:1; }
-.sello { width:54px; height:54px; border-radius:50%; border:2px solid #3355aa; display:flex; align-items:center; justify-content:center; text-align:center; font-size:7.5pt; font-weight:700; color:#3355aa; line-height:1.3; }
+.sello { width:54px; height:54px; border-radius:50%; border:2px solid #16241F; display:flex; align-items:center; justify-content:center; text-align:center; font-size:7.5pt; font-weight:700; color:#16241F; line-height:1.3; }
 .lf { border-bottom:1px solid #aaa; margin:6px 0 2px 0; min-height:14px; padding:1px 2px; font-weight:400; }
 .lbl { font-weight:700; margin-top:8px; }
 .nota { color:red; font-size:7.5pt; margin-top:5px; }
@@ -357,7 +358,7 @@ td { border:1px solid #aaa; padding:2px 4px; height:15px; }
 @media print { body{padding:0} }
 </style></head><body>
 <div class="header">
-  <div class="logo">Sajama.SRL</div>
+  <div class="logo"><img src="${window.location.origin}/logo-sajama.jpg" alt="Sajama 4x4" /></div>
   <div class="htxt">
     <div class="empresa">Sajama.SRL &nbsp; 萨哈马</div>
     <div class="dir">El Alto, avenida 6 de marzo (carretera a Oruro) cerca cruce Achocalla</div>
@@ -520,7 +521,7 @@ window.onload = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-blue-50">
+              <tr className="bg-[#F4F6F5]">
                 <th className="th w-10 text-center">序号<br/>No.</th>
                 <th className="th">中文名称<br/>Desc. Chino</th>
                 <th className="th">西语名称<br/>Desc. Espanol</th>
@@ -636,7 +637,7 @@ window.onload = () => {
       </div>
 
       {guardadoUnaVez && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-2 text-sm text-primary">
+        <div className="bg-[#EEF2F0] border border-[#CBD4CF] rounded-xl px-4 py-2 text-sm text-[#16241F]">
           {isZh
             ? `💾 单据 ${numSolicitud} 已保存。如继续修改并点击保存或打印，将自动更新该记录（不会重复创建）。`
             : `💾 Orden N° ${numSolicitud} guardada. Si seguís editando y volvés a tocar Guardar o Imprimir, se actualizará el mismo registro (no se duplica).`}

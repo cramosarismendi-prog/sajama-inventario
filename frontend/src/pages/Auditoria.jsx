@@ -174,7 +174,7 @@ function RenderizarValorFormateado({ campo, valor }) {
   if (str.startsWith('http') && (str.match(/\.(jpeg|jpg|png|webp|gif)/i) || str.includes('firebasestorage.googleapis.com'))) {
     if (campo?.toLowerCase().includes('poliza') || str.toLowerCase().includes('.pdf')) {
       return (
-        <a href={str} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-primary hover:underline font-bold text-xs bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 shadow-sm">
+        <a href={str} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#16241F] hover:underline font-bold text-xs bg-[#EEF2F0] px-2.5 py-1 rounded-lg border border-[#CBD4CF] shadow-sm">
           <FileText size={14}/> {isZh ? '查看PDF文件' : 'Ver Documento PDF'}
         </a>
       )
@@ -189,7 +189,7 @@ function RenderizarValorFormateado({ campo, valor }) {
   }
 
   if (campo === 'ubicacion') {
-    return <span className="inline-block px-2.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-full text-xs border border-blue-300">{str}</span>
+    return <span className="inline-block px-2.5 py-0.5 bg-[#EDF1EF] text-[#1E2E28] font-bold rounded-full text-xs border border-[#CBD4CF]">{str}</span>
   }
   if (campo === 'estado') {
     return <span className="inline-block px-2.5 py-0.5 bg-purple-100 text-purple-800 font-bold rounded-full text-xs border border-purple-300">{str}</span>
@@ -794,7 +794,7 @@ export default function Auditoria() {
                 {/* 3. Datos de Transporte o Venta adicionales */}
                 {verDetalle.datosTransporte && (
                   <div className="space-y-2">
-                    <p className="font-bold text-blue-900 text-xs flex items-center gap-1.5 border-b border-blue-100 pb-1">
+                    <p className="font-bold text-[#16241F] text-xs flex items-center gap-1.5 border-b border-[#E2E7E4] pb-1">
                       {isZh ? '📄 商务 / 运输 / 销售附加信息:' : '📄 Datos Comercial / Transporte / Venta:'}
                     </p>
                     <RenderizarFichaAmigable datos={verDetalle.datosTransporte} />

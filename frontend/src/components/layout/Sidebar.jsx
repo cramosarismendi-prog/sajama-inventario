@@ -10,6 +10,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { ChangePasswordModal } from '../ui/ChangePasswordModal'
 import { MfaEnrollmentModal } from '../ui/MfaEnrollmentModal'
+import logoSajama from '../../assets/logo-sajama.jpg'
 
 const MENU = [
   { key: 'inventario',   path: '/inventario',    icon: Package,         modulo: 'inventario'   },
@@ -78,7 +79,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) {
 
       <aside className={`
         fixed md:static inset-y-0 left-0 z-50
-        h-screen bg-primary flex flex-col transition-all duration-200
+        h-screen bg-[#16241F] flex flex-col transition-all duration-200
         w-64 ${collapsed ? 'md:w-16' : 'md:w-64'}
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
         shrink-0
@@ -86,13 +87,13 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) {
 
         <div className="flex items-center justify-between px-3 py-4 border-b border-white/10">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
-              <Package size={16} className="text-white"/>
+            <div className="w-9 h-9 rounded-xl overflow-hidden border border-[#E4D825]/45 shadow-sm shrink-0 bg-[#FDE200]">
+              <img src={logoSajama} alt="Sajama 4x4" className="w-full h-full object-cover" />
             </div>
             {!collapsed && (
               <div className="min-w-0">
-                <p className="text-white font-bold text-sm leading-tight truncate">Sajama.SRL</p>
-                <p className="text-white/60 text-xs">{isZh ? '库存管理系统' : 'Sistema de Inventario'}</p>
+                <p className="text-white font-bold text-sm leading-tight truncate tracking-wide">Sajama.SRL</p>
+                <p className="text-[#D6DDD9]/65 text-xs">{isZh ? '库存管理系统' : 'Sistema de Inventario'}</p>
               </div>
             )}
           </div>
@@ -117,27 +118,33 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) {
                 {showDivider && !collapsed && (
                   <div className="px-3 pt-3 pb-1">
                     <div className="border-t border-white/10"/>
-                    <p className="text-white/30 text-xs mt-2 font-medium uppercase tracking-wider">
+                    <p className="text-[#D6DDD9]/40 text-xs mt-2 font-medium uppercase tracking-wider">
                       {isZh ? '管理' : 'Administración'}
                     </p>
                   </div>
                 )}
                 <NavLink to={path} onClick={handleNavClick}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors
-                     ${isActive ? 'bg-white/20 text-white font-medium' : 'text-white/70 hover:bg-white/10 hover:text-white'}`
+                    `flex items-center gap-3 pr-3 pl-2 py-2.5 rounded-lg text-sm transition-colors border-l-4
+                     ${isActive
+                       ? 'bg-[#233830] text-white font-semibold border-[#E4D825]'
+                       : 'text-white/70 hover:bg-[#233830]/60 hover:text-white border-transparent'}`
                   }>
-                  <Icon size={18} className="shrink-0"/>
-                  {!collapsed && <span className="truncate">{labels[key]}</span>}
+                  {({ isActive }) => (
+                    <>
+                      <Icon size={18} className={`shrink-0 ${isActive ? 'text-[#E4D825]' : ''}`}/>
+                      {!collapsed && <span className="truncate">{labels[key]}</span>}
+                    </>
+                  )}
                 </NavLink>
               </div>
             )
           })}
         </nav>
 
-        <div className="border-t border-white/10 p-2 space-y-1">
+        <div className="bg-[#101B17] border-t border-white/10 p-2 space-y-1">
           <button onClick={toggleLang}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors w-full text-sm">
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-[#233830]/70 hover:text-white transition-colors w-full text-sm">
             <Globe size={18} className="shrink-0"/>
             {!collapsed && (
               <span className="flex items-center gap-2">
@@ -150,18 +157,18 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) {
           </button>
 
           {!collapsed && perfil && (
-            <div className="px-3 py-2 bg-white/5 rounded-lg">
+            <div className="px-3 py-2 bg-[#16241F]/80 border border-white/5 rounded-lg">
               <p className="text-white text-xs font-semibold truncate">{perfil.nombre}</p>
-              <p className="text-white/50 text-xs capitalize flex items-center justify-between">
+              <p className="text-[#D6DDD9]/60 text-xs capitalize flex items-center justify-between">
                 <span>{isZh ? (ROL_ZH[perfil.rol] || perfil.rol) : perfil.rol}</span>
-                {perfil.esEncargadoIT && <span className="text-[10px] bg-indigo-500/30 text-indigo-200 px-1 py-0.2 rounded">IT</span>}
+                {perfil.esEncargadoIT && <span className="text-[10px] bg-[#E4D825]/15 text-[#E4D825] border border-[#E4D825]/30 px-1.5 py-0.2 rounded font-semibold">IT</span>}
               </p>
             </div>
           )}
 
           {puedeVer2FA && (
             <button onClick={() => setModalMfa(true)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors w-full text-sm">
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-[#233830]/70 hover:text-white transition-colors w-full text-sm">
               <ShieldCheck size={18} className="shrink-0 text-green-400"/>
               {!collapsed && (
                 <span className="flex items-center justify-between w-full pr-1">
@@ -175,7 +182,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) {
           )}
 
           <button onClick={() => setModalPassword(true)}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors w-full text-sm">
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-[#233830]/70 hover:text-white transition-colors w-full text-sm">
             <KeyRound size={18} className="shrink-0"/>
             {!collapsed && <span>{isZh ? '修改密码' : 'Cambiar contraseña'}</span>}
           </button>

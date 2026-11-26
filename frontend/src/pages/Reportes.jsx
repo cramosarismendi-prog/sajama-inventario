@@ -8,7 +8,7 @@ import { PageLoader } from '../components/ui/Spinner'
 import { Download } from 'lucide-react'
 import { exportarInventarioExcel } from '../utils/exportar'
 
-const COLORS = ['#1A3C6E','#2E75B6','#1D7044','#C55A11','#8B5CF6','#EC4899']
+const COLORS = ['#16241F','#2E5A47','#C9B81A','#B45309','#4B6B5F','#64748B']
 
 export default function Reportes() {
   const { t, i18n } = useTranslation()
@@ -104,7 +104,7 @@ export default function Reportes() {
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip />
-              <Bar dataKey="stock" fill="#2E75B6" radius={[4,4,0,0]} name={isZh ? '库存总数' : 'Stock total'} />
+              <Bar dataKey="stock" fill="#16241F" radius={[4,4,0,0]} name={isZh ? '库存总数' : 'Stock total'} />
             </BarChart>
           </ResponsiveContainer>
         </div>
