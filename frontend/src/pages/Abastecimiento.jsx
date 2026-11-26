@@ -9,13 +9,15 @@ import { useAuth } from '../context/AuthContext'
 import { registrarAccion } from '../services/auditoria'
 import { PageLoader } from '../components/ui/Spinner'
 import { Modal } from '../components/ui/Modal'
+import { ModalReporteExcel } from '../components/ui/ModalReporteExcel'
 import { Confirm } from '../components/ui/Confirm'
 import {
   Fuel, Plus, ArrowDownLeft, ArrowUpRight, Search, Printer,
-  Trash2, Edit2, Filter, Droplet, Truck, FileText, CheckCircle2, AlertCircle
+  Trash2, Edit2, Filter, Droplet, Truck, FileText, CheckCircle2, AlertCircle, FileSpreadsheet
 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
+import { exportarAbastecimientoExcel, filtrarPorRangoFechas } from '../utils/exportar'
 
 const COMBUSTIBLES = ['Gasolina', 'Diésel']
 
@@ -308,6 +310,9 @@ export default function Abastecimiento() {
   // Modales
   const [modalEntrada, setModalEntrada] = useState(false)
   const [modalSalida, setModalSalida] = useState(false)
+  const [modalExcel, setModalExcel] = useState(false)
+  const [tipoExcel, setTipoExcel] = useState('ambos')
+  const [combustibleExcel, setCombustibleExcel] = useState('')
   const [editandoEntrada, setEditandoEntrada] = useState(null)
   const [editandoSalida, setEditandoSalida] = useState(null)
   const [delEntrada, setDelEntrada] = useState(null)
@@ -801,16 +806,25 @@ export default function Abastecimiento() {
           </p>
         </div>
 
-        {canEdit && (
-          <div className="flex items-center gap-2">
-            <button onClick={() => { resetFormEntrada(); setModalEntrada(true) }} className="btn-secondary flex items-center gap-1.5 text-xs sm:text-sm">
-              <Plus size={16} className="text-emerald-600"/> <ArrowDownLeft size={16} className="text-emerald-600"/> {isZh ? '登记采购入库' : 'Registrar Entrada (Compra)'}
-            </button>
-            <button onClick={() => { resetFormSalida(); setModalSalida(true) }} className="btn-primary flex items-center gap-1.5 text-xs sm:text-sm">
-              <Plus size={16}/> <ArrowUpRight size={16}/> {isZh ? '登记加油派送 (出库)' : 'Registrar Despacho (Salida)'}
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setModalExcel(true)}
+            className="btn-secondary flex items-center gap-1.5 text-xs sm:text-sm"
+          >
+            <FileSpreadsheet size={16} className="text-[#15803D]" /> {isZh ? '导出 Excel 报表' : 'Reporte Excel'}
+          </button>
+          {canEdit && (
+            <>
+              <button onClick={() => { resetFormEntrada(); setModalEntrada(true) }} className="btn-secondary flex items-center gap-1.5 text-xs sm:text-sm">
+                <Plus size={16} className="text-emerald-600"/> <ArrowDownLeft size={16} className="text-emerald-600"/> {isZh ? '登记采购入库' : 'Registrar Entrada (Compra)'}
+              </button>
+              <button onClick={() => { resetFormSalida(); setModalSalida(true) }} className="btn-primary flex items-center gap-1.5 text-xs sm:text-sm">
+                <Plus size={16}/> <ArrowUpRight size={16}/> {isZh ? '登记加油派送 (出库)' : 'Registrar Despacho (Salida)'}
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* KPI Cards de Saldos */}
@@ -1477,6 +1491,91 @@ export default function Abastecimiento() {
         mensaje={isZh ? `确定删除向 ${delSalida?.seriePlaca} 派送 ${delSalida?.cantidad} 升 ${delSalida?.combustible} 的记录吗？` : `¿Eliminar el registro de despacho de ${delSalida?.cantidad}L de ${delSalida?.combustible} a ${delSalida?.seriePlaca}?`}
         onConfirm={handleEliminarSalida}
         onCancel={() => setDelSalida(null)}
+      />
+
+      {/* MODAL REPORTE EXCEL POR RANGO DE FECHAS */}
+      <ModalReporteExcel
+        open={modalExcel}
+        onClose={() => setModalExcel(false)}
+        tituloEs="Reporte Excel — Abastecimiento y Despacho"
+        tituloZh="导出 Excel 报表 — 燃油供应与派送"
+        subtituloEs="Exporta resumen de saldos, compras (entradas) y despachos (salidas) de combustible en el periodo elegido."
+        subtituloZh="按选定日期范围导出燃油余额汇总、采购入库及派送出库明细。"
+        filtrosExtra={
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-[#374540] uppercase tracking-wider mb-1.5">
+                {isZh ? '报表范围' : 'Movimientos a incluir'}
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { val: 'ambos',    es: 'Consolidado',   zh: '全部汇总' },
+                  { val: 'entradas', es: 'Solo Compras',  zh: '仅采购入库' },
+                  { val: 'salidas',  es: 'Solo Despachos',zh: '仅加油派送' },
+                ].map(op => (
+                  <button
+                    key={op.val}
+                    type="button"
+                    onClick={() => setTipoExcel(op.val)}
+                    className={`py-2 px-2.5 rounded-lg text-xs font-semibold border transition-colors ${
+                      tipoExcel === op.val
+                        ? 'bg-[#16241F] text-[#E4D825] border-[#16241F]'
+                        : 'bg-white text-[#233830] border-[#CBD4CF] hover:bg-[#EEF2F0]'
+                    }`}
+                  >
+                    {isZh ? op.zh : op.es}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#374540] uppercase tracking-wider mb-1.5">
+                {isZh ? '燃油种类' : 'Tipo de combustible'}
+              </label>
+              <select
+                className="input bg-white"
+                value={combustibleExcel}
+                onChange={e => setCombustibleExcel(e.target.value)}
+              >
+                <option value="">{isZh ? '全部燃油 (汽油和柴油)' : 'Todos (Gasolina y Diésel)'}</option>
+                <option value="Gasolina">{isZh ? '仅汽油 (Gasolina)' : 'Solo Gasolina'}</option>
+                <option value="Diésel">{isZh ? '仅柴油 (Diésel)' : 'Solo Diésel'}</option>
+              </select>
+            </div>
+          </div>
+        }
+        contarRegistros={({ desde, hasta }) => {
+          const matchComb = (v) => {
+            if (!combustibleExcel) return true
+            const a = (v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            const b = combustibleExcel.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            return a === b
+          }
+          const nEnt = (tipoExcel === 'ambos' || tipoExcel === 'entradas')
+            ? filtrarPorRangoFechas(entradas, desde, hasta).filter(e => matchComb(e.combustible)).length
+            : 0
+          const nSal = (tipoExcel === 'ambos' || tipoExcel === 'salidas')
+            ? filtrarPorRangoFechas(salidas, desde, hasta).filter(s => matchComb(s.combustible)).length
+            : 0
+          return {
+            total: nEnt + nSal,
+            detalle: isZh
+              ? `采购入库: ${nEnt} 条 · 加油派送: ${nSal} 条`
+              : `Compras/Entradas: ${nEnt} · Despachos/Salidas: ${nSal}`,
+          }
+        }}
+        onExportar={({ desde, hasta }) => {
+          exportarAbastecimientoExcel({
+            entradas,
+            salidas,
+            saldos,
+            tipoReporte: tipoExcel,
+            combustibleFiltro: combustibleExcel,
+            desde,
+            hasta,
+          })
+          toast.success(isZh ? '燃油 Excel 报表已成功导出' : 'Reporte Excel de Abastecimiento descargado correctamente')
+        }}
       />
     </div>
   )

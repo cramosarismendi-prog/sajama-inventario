@@ -1,17 +1,19 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Search, Package, AlertTriangle, Scan, ClipboardList, PackageMinus, PackagePlus, Printer, RefreshCw, Edit3, Trash2, Plus, Save, Calendar, ShieldAlert } from 'lucide-react'
+import { Search, Package, AlertTriangle, Scan, ClipboardList, PackageMinus, PackagePlus, Printer, RefreshCw, Edit3, Trash2, Plus, Save, Calendar, ShieldAlert, FileSpreadsheet } from 'lucide-react'
 import { getItems } from '../services/inventario'
 import { db } from '../services/firebase'
 import { collection, getDocs, query as firestoreQuery, orderBy, doc, writeBatch, increment, serverTimestamp, deleteDoc } from 'firebase/firestore'
 import { Badge } from '../components/ui/Badge'
 import { Modal } from '../components/ui/Modal'
+import { ModalReporteExcel } from '../components/ui/ModalReporteExcel'
 import { Confirm } from '../components/ui/Confirm'
 import { PageLoader } from '../components/ui/Spinner'
 import { useScannerQR, parsearQR } from '../hooks/useScannerQR'
 import { useAuth } from '../context/AuthContext'
 import { registrarAccion } from '../services/auditoria'
 import { traducirAlChino } from '../services/traduccion'
+import { exportarConsultasExcel, filtrarPorRangoFechas } from '../utils/exportar'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
@@ -706,6 +708,10 @@ export default function Consultas() {
   const [tipoOrdenEditando, setTipoOrdenEditando] = useState('salida')
   const [delOrden, setDelOrden] = useState(null)
 
+  // Modal de Reporte Excel por rango de fechas
+  const [modalExcel, setModalExcel] = useState(false)
+  const [tipoExcel, setTipoExcel]   = useState('ambos')
+
   // Estado para la Herramienta Exclusiva de Super Admin: Purga Masiva por Lotes y Fechas
   const [modalPurgaLotes, setModalPurgaLotes] = useState(false)
   const [fechaInicioPurga, setFechaInicioPurga] = useState('2026-07-01')
@@ -962,11 +968,21 @@ export default function Consultas() {
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto">
-      <div>
-        <h1>{isZh ? '综合查询' : 'Consultas'}</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          {isZh ? '综合查询库存物料明细及出入库单据流转历史' : 'Consulta ítems del inventario y el historial de órdenes de salida y entrada'}
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1>{isZh ? '综合查询' : 'Consultas'}</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {isZh ? '综合查询库存物料明细及出入库单据流转历史' : 'Consulta ítems del inventario y el historial de órdenes de salida y entrada'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setModalExcel(true)}
+          className="btn-secondary btn-sm flex items-center gap-1.5"
+        >
+          <FileSpreadsheet size={15} className="text-[#15803D]" />
+          {isZh ? '导出 Excel 报表' : 'Reporte Excel'}
+        </button>
       </div>
 
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit flex-wrap">
@@ -1507,6 +1523,61 @@ export default function Consultas() {
           </div>
         </Modal>
       )}
+
+      {/* Modal de Reporte Excel por Rango de Fechas */}
+      <ModalReporteExcel
+        open={modalExcel}
+        onClose={() => setModalExcel(false)}
+        tituloEs="Reporte Excel — Consultas de Órdenes"
+        tituloZh="导出 Excel 报表 — 出入库单据查询"
+        subtituloEs="Exporta el historial detallado de órdenes de salida y/o entrada en el rango de fechas elegido."
+        subtituloZh="按选定日期范围导出出库单与入库单的详细流水报表。"
+        filtrosExtra={
+          <div>
+            <label className="block text-xs font-semibold text-[#374540] uppercase tracking-wider mb-1.5">
+              {isZh ? '报表内容' : 'Tipo de órdenes a incluir'}
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { val: 'ambos',    es: 'Salidas y Entradas', zh: '出库与入库' },
+                { val: 'salidas',  es: 'Solo Salidas',       zh: '仅出库单' },
+                { val: 'entradas', es: 'Solo Entradas',      zh: '仅入库单' },
+              ].map(op => (
+                <button
+                  key={op.val}
+                  type="button"
+                  onClick={() => setTipoExcel(op.val)}
+                  className={`py-2 px-2.5 rounded-lg text-xs font-semibold border transition-colors ${
+                    tipoExcel === op.val
+                      ? 'bg-[#16241F] text-[#E4D825] border-[#16241F]'
+                      : 'bg-white text-[#233830] border-[#CBD4CF] hover:bg-[#EEF2F0]'
+                  }`}
+                >
+                  {isZh ? op.zh : op.es}
+                </button>
+              ))}
+            </div>
+          </div>
+        }
+        contarRegistros={({ desde, hasta }) => {
+          const nSal = (tipoExcel === 'ambos' || tipoExcel === 'salidas')
+            ? filtrarPorRangoFechas(salidas, desde, hasta).length
+            : 0
+          const nEnt = (tipoExcel === 'ambos' || tipoExcel === 'entradas')
+            ? filtrarPorRangoFechas(entradas, desde, hasta).length
+            : 0
+          return {
+            total: nSal + nEnt,
+            detalle: isZh
+              ? `出库单: ${nSal} 张 · 入库单: ${nEnt} 张`
+              : `Órdenes de salida: ${nSal} · Órdenes de entrada: ${nEnt}`,
+          }
+        }}
+        onExportar={({ desde, hasta }) => {
+          exportarConsultasExcel({ salidas, entradas, tipoReporte: tipoExcel, desde, hasta })
+          toast.success(isZh ? 'Excel 报表已成功导出' : 'Reporte Excel de Consultas descargado correctamente')
+        }}
+      />
     </div>
   )
 }

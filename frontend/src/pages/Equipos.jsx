@@ -11,16 +11,18 @@ import { registrarAccion } from '../services/auditoria'
 import { traducirAlChino } from '../services/traduccion'
 import { PageLoader } from '../components/ui/Spinner'
 import { Modal } from '../components/ui/Modal'
+import { ModalReporteExcel } from '../components/ui/ModalReporteExcel'
 import { ModalVerFotoZoom } from '../components/ui/ModalVerFotoZoom'
 import {
   HardHat, Plus, Search, FileText, Trash2, Edit3,
   ExternalLink, Paperclip, CheckCircle2, Tag, AlertCircle, Languages,
   Printer, Image as ImageIcon, CheckSquare, Square, DollarSign,
-  ShoppingBag, Truck, RotateCcw, Loader2
+  ShoppingBag, Truck, RotateCcw, Loader2, FileSpreadsheet
 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 import { obtenerCotizacionUSD, suscribirCotizacionUSD, convertirBOBaUSD, convertirUSDaBOB } from '../services/cotizacion'
+import { exportarEquiposExcel, filtrarPorRangoFechas } from '../utils/exportar'
 
 const EMPRESAS = [
   'SAJAMA S.R.L.',
@@ -1431,6 +1433,9 @@ export default function Equipos() {
   const [modalTransporte, setModalTransporte] = useState(false)
   const [modalVenta, setModalVenta] = useState(false)
   const [modalRegistro, setModalRegistro] = useState(false)
+  const [modalExcel, setModalExcel] = useState(false)
+  const [empresaExcel, setEmpresaExcel] = useState('')
+  const [estadoExcel, setEstadoExcel] = useState('')
 
   const [editando, setEditando] = useState(null)
   const [delEquipo, setDelEquipo] = useState(null)
@@ -1876,6 +1881,9 @@ export default function Equipos() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <button onClick={() => setModalExcel(true)} className="btn-secondary btn-sm flex items-center gap-1.5" title={isZh ? '按日期范围导出 Excel 报表（不含图片）' : 'Exportar reporte Excel por rango de fechas (sin imágenes)'}>
+            <FileSpreadsheet size={14} className="text-[#15803D]" /> {isZh ? '导出 Excel' : 'Reporte Excel'}
+          </button>
           <button onClick={() => setModalRegistro(true)} className="btn-secondary btn-sm flex items-center gap-1.5" title={isZh ? '查看销售与流程记录' : 'Ver registro de ventas y procesos'}>
             <FileText size={14}/> {isZh ? '历史记录' : 'Registro'}
           </button>
@@ -2383,6 +2391,74 @@ export default function Equipos() {
         fotoUrl={verFoto?.fotoUrl}
         titulo={verFoto?.titulo || 'Foto del equipo'}
         subtitulo={verFoto?.subtitulo}
+      />
+
+      {/* Modal Reporte Excel por Rango de Fechas (sin fotos ni imágenes) */}
+      <ModalReporteExcel
+        open={modalExcel}
+        onClose={() => setModalExcel(false)}
+        tituloEs="Reporte Excel — Equipos y Máquinas"
+        tituloZh="导出 Excel 报表 — 设备清单"
+        subtituloEs="Selecciona el rango de fechas y filtros opcionales para exportar el listado de equipos."
+        subtituloZh="选择日期范围和筛选条件以导出设备清单。"
+        avisoExtraEs="Las fotografías e imágenes de los equipos y placas NO se incluyen en el archivo Excel; solo se exportan los datos técnicos, cantidades, precios y póliza."
+        avisoExtraZh="设备与铭牌照片不包含在 Excel 报表中，仅导出技术参数、数量、价格及报关单数据。"
+        filtrosExtra={
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-[#374540] uppercase tracking-wider mb-1">
+                {isZh ? '所属公司' : 'Empresa'}
+              </label>
+              <select
+                className="input bg-white"
+                value={empresaExcel}
+                onChange={e => setEmpresaExcel(e.target.value)}
+              >
+                <option value="">{isZh ? '全部公司' : 'Todas las empresas'}</option>
+                {EMPRESAS.map(emp => <option key={emp} value={emp}>{emp}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#374540] uppercase tracking-wider mb-1">
+                {isZh ? '设备状态' : 'Estado'}
+              </label>
+              <select
+                className="input bg-white"
+                value={estadoExcel}
+                onChange={e => setEstadoExcel(e.target.value)}
+              >
+                <option value="">{isZh ? '全部状态' : 'Todos los estados'}</option>
+                {ESTADOS.map(est => (
+                  <option key={est.id} value={est.id}>{isZh ? est.labelZh : est.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        }
+        contarRegistros={({ desde, hasta }) => {
+          const lista = filtrarPorRangoFechas(equipos, desde, hasta).filter(eq => {
+            const matchEmp = !empresaExcel || (eq.empresa || 'SAJAMA S.R.L.') === empresaExcel
+            const matchEst = !estadoExcel  || (eq.estado  || 'A la venta')    === estadoExcel
+            return matchEmp && matchEst
+          })
+          return {
+            total: lista.length,
+            detalle: isZh
+              ? `共 ${lista.length} 条设备记录（不含照片）`
+              : `${lista.length} equipo(s) encontrados (solo datos, sin imágenes)`,
+          }
+        }}
+        onExportar={({ desde, hasta }) => {
+          exportarEquiposExcel({
+            equipos,
+            cotizacionBcb,
+            desde,
+            hasta,
+            empresaFiltro: empresaExcel,
+            estadoFiltro: estadoExcel,
+          })
+          toast.success(isZh ? '设备 Excel 报表已成功导出' : 'Reporte Excel de Equipos descargado correctamente')
+        }}
       />
     </div>
   )
